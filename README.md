@@ -20,6 +20,10 @@
 
 ---
 
+**Deploy URL (about page)**: [https://tu-reports.onrender.com/about/](https://tu-reports.onrender.com/about/)
+
+---
+
 ## 👥 Team Members  
 | No. | Name | Student ID | 
 |-----|------|-------------|
@@ -41,6 +45,7 @@
 - **Backend:** Django (Python)  
 - **Database:** PostgreSQL  
 - **Deployment:** Render 
+
 
 
 
