@@ -1,0 +1,102 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | Classroom Booking System</title>
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #fff8e1; 
+            color: #333;
+            font-family: "Poppins", sans-serif;
+        }
+
+        header {
+            background: linear-gradient(90deg, #ffc107, #dc3545); 
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+
+        .btn-custom {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+        .btn-custom:hover {
+            background-color: #b71c1c;
+        }
+
+        footer {
+            background-color: #dc3545;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: 3rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>TU Reports</h1>
+        <h2>ระบบแจ้งปัญหาและติดตามการแก้ไขภายในมหาวิทยาลัยธรรมศาสตร์</h2>
+    </header>
+
+    <div class="container my-5">
+        <div class="card p-4">
+            <h2 class="text-danger mb-3">📘 Overview</h2>
+            <p>
+                TU Reports คือระบบเว็บแอปพลิเคชันที่พัฒนาขึ้นเพื่อใช้ในการ แจ้งปัญหาและติดตามการแก้ไขภายในมหาวิทยาลัยธรรมศาสตร์
+โดยผู้ใช้งาน (นิสิต / อาจารย์ / เจ้าหน้าที่) สามารถรายงานปัญหาที่พบ เช่น อุปกรณ์ชำรุด อินเทอร์เน็ตล่ม หรือห้องเรียนไม่พร้อมใช้งาน ถนนชำรุด ไฟฟ้าขัดข้อง ได้อย่างสะดวก รวดเร็ว และโปร่งใสผ่านระบบออนไลน์
+
+เจ้าหน้าที่ผู้รับผิดชอบ อัปเดตสถานะ และแนบหลักฐานหลังการแก้ไขได้โดยตรง
+นอกจากนี้ ระบบยังมีแดชบอร์ดสรุปผลและรายงานสถิติของปัญหาที่เกิดขึ้น เพื่อให้ผู้ดูแลสามารถวิเคราะห์แนวโน้มและปรับปรุงการบริหารจัดการได้อย่างมีประสิทธิภาพ
+            </p>
+
+            <h2 class="text-danger mb-3">🎯 Project Goals</h2>
+            <ul>
+                <li>พัฒนาเว็บแอปพลิเคชันที่ช่วยให้ผู้ใช้งานสามารถแจ้งปัญหาได้อย่างสะดวก รวดเร็ว</li>
+                <li>สร้างระบบติดตามงานแบบเรียลไทม์ เพื่อให้ผู้แจ้งสามารถตรวจสอบสถานะได้ทุกขั้นตอน</li>
+                <li>เพิ่มประสิทธิภาพการรับเรื่องและการแก้ไขของเจ้าหน้าที่ ผ่านการจัดการงานที่เป็นระบบ</li>
+                <li>จัดทำแดชบอร์ดและรายงานสถิติ เพื่อใช้เป็นข้อมูลประกอบการปรับปรุงคุณภาพการให้บริการภายมหาวิทยาลัย</li>
+            </ul>
+
+            <h3 class="text-danger mb-3">👥 Team Members</h3>
+            <ul>
+                <li> รัชพล	 เยี่ยมกระโทก 6410455015 </li>
+                <li> กนกวรรณ คุ้มโชคชนะ 6410615014 </li>
+                <li> อาแฟนดี่ย์ แวอุเซ็ง 6610625037 </li>
+                <li> สุภัคจิรา ส่องสว่าง 6610625052 </li>
+                <li> กฤติเดช วิชัยดิษฐ 6610685098 </li>
+            </ul>
+
+            <h3 class="text-danger mb-3">External Links</h3>
+            <div class="d-flex flex-wrap gap-3 mt-2">
+                <a href="https://github.com/6610685098/TU_Reports" target="_blank" class="btn btn-custom">
+                    🔗 GitHub Repository
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Faculty of Engineering, Thammasat University
+            Course: CN331 – Software Engineering
+            Semester: 1 / 2568
+            Advisor: รศ.ดร.วีรชัย อโณทัยไพบูลย์</p>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
