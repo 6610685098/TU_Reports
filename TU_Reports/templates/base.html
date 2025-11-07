@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}TU Report{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'tu-red': '#C8102E',
+            'tu-gold': '#FFB81C',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-50">
+  {% if user.is_authenticated %}
+    {% include 'components/navbar.html' %}
+  {% endif %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  {% if user.is_authenticated %}
+    {% include 'components/footer.html' %}
+  {% endif %}
+
+  <!-- Real-time Notifications WebSocket -->
+  {% if user.is_authenticated %}
+  <script>
+    // WebSocket connection for real-time notifications
+    let notificationSocket = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    const reconnectDelay = 3000; // 3 seconds
+
+    function connectWebSocket() {
+      // Determine WebSocket protocol (ws:// or wss://)
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws/notifications/`;
+
+      try {
+        notificationSocket = new WebSocket(wsUrl);
+
+        notificationSocket.onopen = function(e) {
+          console.log(' WebSocket Connected');
+          reconnectAttempts = 0;
+        };
+
+        notificationSocket.onmessage = function(e) {
+          const data = JSON.parse(e.data);
+
+          if (data.type === 'connection_established') {
+            console.log(' Notification stream established');
+          } else if (data.type === 'notification') {
+            handleNewNotification(data.notification, data.unread_count);
+          } else if (data.type === 'pong') {
+            // Pong response from ping (for keep-alive)
+          }
+        };
+
+        notificationSocket.onclose = function(e) {
+          console.log(' WebSocket Disconnected');
+          // Attempt to reconnect
+          if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            console.log(`⏳ Reconnecting... (${reconnectAttempts}/${maxReconnectAttempts})`);
+            setTimeout(connectWebSocket, reconnectDelay);
+          } else {
+            console.log(' Max reconnect attempts reached');
+          }
+        };
+
+        notificationSocket.onerror = function(e) {
+          console.error(' WebSocket Error:', e);
+        };
+
+      } catch (error) {
+        console.error(' Failed to create WebSocket:', error);
+      }
+    }
+
+    function handleNewNotification(notification, unreadCount) {
+      console.log(' New Notification:', notification);
+
+      // Update unread count badge in navbar
+      updateNotificationBadge(unreadCount);
+
+      // Show browser notification if permission granted
+      showBrowserNotification(notification);
+
+      // Show toast notification (in-app)
+      showToastNotification(notification);
+    }
+
+    function updateNotificationBadge(count) {
+      const badge = document.querySelector('a[href*="notify"] span.bg-red-500');
+      if (badge) {
+        if (count > 0) {
+          badge.textContent = count > 99 ? '99+' : count;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+    }
+
+    function showBrowserNotification(notification) {
+      // Check if browser supports notifications
+      if (!('Notification' in window)) return;
+
+      // Request permission if not granted
+      if (Notification.permission === 'granted') {
+        createBrowserNotification(notification);
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            createBrowserNotification(notification);
+          }
+        });
+      }
+    }
+
+    function createBrowserNotification(notification) {
+      const notif = new Notification(notification.title, {
+        body: notification.message,
+        icon: '/static/images/logo.png', // Add your logo
+        badge: '/static/images/badge.png',
+        tag: `notification-${notification.id}`,
+        requireInteraction: false,
+      });
+
+      notif.onclick = function() {
+        window.focus();
+        if (notification.ticket_id) {
+          window.location.href = `/tickets/${notification.ticket_id}/`;
+        } else {
+          window.location.href = '/notify/';
+        }
+        notif.close();
+      };
+    }
+
+    function showToastNotification(notification) {
+      // Create toast element
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-20 right-4 bg-white border-l-4 border-red-500 rounded-lg shadow-xl p-4 max-w-sm z-50 animate-slide-in';
+      toast.innerHTML = `
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            ${getNotificationIcon(notification.notification_type)}
+          </div>
+          <div class="ml-3 flex-1">
+            <p class="text-sm font-semibold text-gray-900">${notification.title}</p>
+            <p class="mt-1 text-sm text-gray-600">${notification.message}</p>
+          </div>
+          <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-gray-400 hover:text-gray-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      `;
+
+      document.body.appendChild(toast);
+
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        toast.style.animation = 'slide-out 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+      }, 5000);
+    }
+
+    function getNotificationIcon(type) {
+      const icons = {
+        'NEW_TICKET': '',
+        'ASSIGNED': '',
+        'REASSIGNED': '',
+        'STATUS_CHANGE': '',
+        'COMPLETED': '',
+        'URGENT': '',
+        'COMMENT': '',
+        'FEEDBACK': '',
+      };
+      return `<span class="text-2xl">${icons[type] || ''}</span>`;
+    }
+
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slide-in {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes slide-out {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+      }
+      .animate-slide-in {
+        animation: slide-in 0.3s ease-out;
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Connect when page loads
+    connectWebSocket();
+
+    // Send ping every 30 seconds to keep connection alive
+    setInterval(() => {
+      if (notificationSocket && notificationSocket.readyState === WebSocket.OPEN) {
+        notificationSocket.send(JSON.stringify({
+          type: 'ping',
+          timestamp: new Date().toISOString()
+        }));
+      }
+    }, 30000);
+
+    // Reconnect when page becomes visible (if disconnected)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && (!notificationSocket || notificationSocket.readyState === WebSocket.CLOSED)) {
+        connectWebSocket();
+      }
+    });
+  </script>
+  {% endif %}
+</body>
+</html>

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}เข้าสู่ระบบ - TU Report{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-amber-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8">
+    <!-- Logo & Header -->
+    <div class="text-center">
+      <h1 class="text-4xl font-bold text-red-600">TU REPORT</h1>
+      <p class="mt-2 text-sm text-gray-600">ระบบแจ้งซ่อมมหาวิทยาลัยธรรมศาสตร์</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="bg-white rounded-lg shadow-xl p-8">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-6 text-center">เข้าสู่ระบบ</h2>
+
+      <!-- Messages -->
+      {% if messages %}
+        {% for message in messages %}
+          <div class="mb-4 p-3 rounded {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <!-- Login Form -->
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Username -->
+        <div>
+          <label for="username" class="block text-sm font-medium text-gray-700">ชื่อผู้ใช้</label>
+          <input
+            type="text"
+            name="username"
+            id="username"
+            required
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+            placeholder="student001 or username"
+          >
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700">รหัสผ่าน</label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            required
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+            placeholder="••••••••"
+          >
+        </div>
+
+        <!-- Login Type Selector -->
+        <div class="flex space-x-4">
+          <button
+            type="submit"
+            name="login_type"
+            value="tu_api"
+            class="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition"
+          >
+            TU Login (SSO)
+          </button>
+
+          <button
+            type="submit"
+            name="login_type"
+            value="local"
+            class="flex-1 bg-amber-500 text-white py-2 px-4 rounded-md hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 transition"
+          >
+            Local Login
+          </button>
+        </div>
+      </form>
+
+      <!-- Help Text -->
+      <div class="mt-6 text-center text-xs text-gray-500">
+        <p>TU Login: ใช้บัญชี TU Passport</p>
+        <p>Local Login: ใช้บัญชีที่ Admin สร้างให้</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

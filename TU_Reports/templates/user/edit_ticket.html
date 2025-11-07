@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}แก้ไข Ticket #{{ ticket.id }} - TU Report{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8 px-4">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">แก้ไข Ticket #{{ ticket.id }}</h1>
+    <p class="text-sm text-gray-600 mt-2">สามารถแก้ไขได้เฉพาะ Ticket ที่มีสถานะ "รอดำเนินการ" เท่านั้น</p>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" class="bg-white rounded-lg shadow p-6 space-y-6">
+    {% csrf_token %}
+
+    <!-- Title -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">หัวข้อปัญหา *</label>
+      {{ form.title }}
+    </div>
+
+    <!-- Category -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่ *</label>
+      {{ form.category }}
+    </div>
+
+    <!-- Description -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">รายละเอียด *</label>
+      {{ form.description }}
+    </div>
+
+    <!-- Urgency -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">ระดับความเร่งด่วน *</label>
+      {{ form.urgency_level }}
+    </div>
+
+    <!-- Address -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">สถานที่ (อาคาร/ห้อง)</label>
+      {{ form.address_description }}
+    </div>
+
+    <!-- Info about non-editable fields -->
+    <div class="bg-blue-50 border border-blue-200 rounded p-4">
+      <p class="text-sm text-blue-800">
+        <strong>หมายเหตุ:</strong> ไม่สามารถแก้ไข GPS location และรูปภาพก่อนซ่อมได้
+      </p>
+    </div>
+
+    <!-- Current Location (Read-only) -->
+    {% if ticket.location %}
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2"> ตำแหน่งปัจจุบัน (ไม่สามารถแก้ไขได้)</label>
+      <div class="bg-gray-50 p-3 rounded border border-gray-200 text-sm text-gray-600">
+        Lat: {{ ticket.location.y|floatformat:6 }}, Lng: {{ ticket.location.x|floatformat:6 }}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Submit -->
+    <div class="flex justify-end space-x-3">
+      <a href="{% url 'tickets:ticket_detail' ticket.id %}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+        ยกเลิก
+      </a>
+      <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+        บันทึกการแก้ไข
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

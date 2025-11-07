@@ -1,0 +1,19 @@
+<nav class="bg-red-600 text-white shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <div class="flex items-center space-x-8">
+        <a href="{% url 'dashboard:map' %}?latest_status=all" class="text-xl font-bold hover:text-amber-200">TU REPORT</a>
+
+        <!-- Navigation for Iteration 1 -->
+        <a href="{% url 'tickets:my_tickets' %}" class="hover:text-amber-200">งานของฉัน</a>
+        <a href="{% url 'tickets:create_ticket' %}" class="hover:text-amber-200">แจ้งปัญหา</a>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <span class="text-sm">{{ user.get_display_name }}</span>
+        <span class="px-2 py-1 bg-amber-500 rounded text-xs">{{ user.get_role_display }}</span>
+        <a href="{% url 'authentication:logout' %}" class="text-sm hover:text-amber-200">ออกจากระบบ</a>
+      </div>
+    </div>
+  </div>
+</nav>
