@@ -136,3 +136,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/login/"
+
+TU_API_ENABLED = True
+TU_API_BASE_URL = "https://restapi.tu.ac.th"
+TU_APPLICATION_KEY = "TUefa2f6a38c1ec79dcfb23bb2074747dc91381e33471794e37e3dcf69712bcc024fed72ce50df9f0ff5e8cb1e0e136f8f"
