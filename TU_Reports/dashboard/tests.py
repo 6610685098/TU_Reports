@@ -49,7 +49,7 @@ class DashboardMapViewTests(TestCase):
         # สร้าง Ticket ใบที่ 5 พร้อม Attachment เพื่อทดสอบ fallback image
         ticket_with_attachment = Ticket.objects.create(
             title='ประตูห้องน้ำล็อค', status='PENDING', created_by=self.test_user,
-            latitude=13.75, longitude=100.55
+            latitude=13.75, longitude=100.55,category=self.category1
         )
         
         # สร้างไฟล์จำลองในหน่วยความจำ
@@ -124,7 +124,7 @@ class DashboardMapViewTests(TestCase):
     def test_map_view_filters_by_category(self):
         self.client.login(username='testuser', password='testpassword123')
         response = self.client.get(reverse('dashboard:map'), {'category': self.category1.id})
-        self.assertEqual(len(response.context['tickets']), 2)
+        self.assertEqual(len(response.context['tickets']), 3)
 
     def test_map_view_filters_by_status_in_progress(self):
         self.client.login(username='testuser', password='testpassword123')
