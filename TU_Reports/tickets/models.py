@@ -68,8 +68,8 @@ class Ticket(models.Model):
         Category,
         on_delete=models.PROTECT,
         related_name="tickets",
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
     )
 
     created_by = models.ForeignKey(
