@@ -126,12 +126,6 @@ class Ticket(models.Model):
         self.completed_at = timezone.now()
         self.save(update_fields=["status", "completed_at", "updated_at"])
 
-    def is_overdue(self, hours: int = 48) -> bool:
-        if self.status in {"COMPLETED", "CLOSED", "REJECTED"}:
-            return False
-        return self.created_at < timezone.now() - timedelta(hours=hours)
-
-
 # =========================
 # สถานะความพร้อมของช่าง
 # =========================
