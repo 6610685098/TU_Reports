@@ -140,7 +140,7 @@ def my_tickets(request):
     return render(request, 'user/my_tickets.html', context)
 
 # -------------------------------------------------------------------
-# รายละเอียด Ticket + อัปเดตโดยช่าง ยัง
+# รายละเอียด Ticket + อัปเดตโดยช่าง ได้แล้ว
 # -------------------------------------------------------------------
 @login_required
 def ticket_detail(request, ticket_id):
