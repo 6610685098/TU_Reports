@@ -66,6 +66,7 @@ def create_ticket(request):
                 changed_by=request.user,
                 note='สร้าง Ticket ใหม่',
             )
+            return redirect('tickets:ticket_detail', ticket_id=ticket.id)
     else:
             form = TicketForm()
             # มาใส่มอบหมายงานช่างที่หลัง
