@@ -109,3 +109,12 @@
 .td-btn-row{ display:grid; gap:10px; grid-template-columns:1fr 1fr; }
 
 .td-card + .td-card { scroll-margin-top: 24px; }
+
+.page-soft-bg{
+  background:
+    radial-gradient(900px 600px at 10% -10%, #fff7e6 0%, transparent 60%),
+    radial-gradient(900px 600px at 110% 110%, #ffe9e9 0%, transparent 60%),
+    linear-gradient(180deg, #fffdf8, #fff9f3);
+  min-height: calc(100vh - 56px);
+  padding:28px 0;
+}

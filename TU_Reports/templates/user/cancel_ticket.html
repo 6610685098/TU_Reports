@@ -1,58 +1,58 @@
 {% extends 'base.html' %}
+{% load static %}  {# ✅ เพิ่มบรรทัดนี้ #}
 
 {% block title %}ยกเลิก Ticket #{{ ticket.id }} - TU Report{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cancel_ticket.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="max-w-2xl mx-auto py-8 px-4">
-  <div class="bg-white rounded-lg shadow p-6">
-    <h1 class="text-2xl font-bold text-gray-800 mb-4">ยืนยันการยกเลิก Ticket</h1>
+<div class="page-soft-bg">
+  <div class="wrap">
 
-    <!-- Ticket Info -->
-    <div class="bg-yellow-50 border border-yellow-200 rounded p-4 mb-6">
-      <p class="text-sm font-semibold text-yellow-800 mb-2">คุณกำลังจะยกเลิก Ticket นี้:</p>
-      <div class="space-y-1 text-sm text-gray-700">
-        <p><strong>Ticket #{{ ticket.id }}:</strong> {{ ticket.title }}</p>
-        <p><strong>สถานะ:</strong> {{ ticket.get_status_display }}</p>
-        <p><strong>หมวดหมู่:</strong> {{ ticket.category.name }}</p>
-        {% if ticket.assigned_to %}
-        <p><strong>ช่างที่รับผิดชอบ:</strong> {{ ticket.assigned_to.get_display_name }}</p>
-        {% endif %}
+    <div class="soft-card hero mb-6">
+      <div>
+        <h1 class="hero-title">ยกเลิกงาน #{{ ticket.id }}</h1>
+        <p class="hero-sub">ยืนยันการยกเลิกงาน หากยกเลิกแล้วจะไม่สามารถย้อนกลับได้</p>
       </div>
     </div>
 
-    <!-- Warning -->
-    <div class="bg-red-50 border border-red-200 rounded p-4 mb-6">
-      <p class="text-sm text-red-800">
-        <strong> คำเตือน:</strong> การยกเลิก Ticket ไม่สามารถย้อนกลับได้
-        {% if ticket.assigned_to %}
-        และจะมีการแจ้งเตือนไปยังช่างที่รับผิดชอบ
-        {% endif %}
-      </p>
+    <div class="soft-card cancel-card">
+      <div class="info info--amber">
+        <div class="info-title">คุณกำลังจะยกเลิกงานนี้</div>
+        <ul class="info-list">
+          <li><strong>หัวข้อ:</strong> {{ ticket.title }}</li>
+          <li><strong>สถานะ:</strong> {{ ticket.get_status_display }}</li>
+          <li><strong>หมวดหมู่:</strong> {{ ticket.category.name }}</li>
+          {% if ticket.assigned_to %}
+          <li><strong>ช่างที่รับผิดชอบ:</strong> {{ ticket.assigned_to.get_display_name }}</li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <div class="info info--red">
+        <div class="info-title">คำเตือน</div>
+        <p class="info-text">
+          การยกเลิกงาน <strong>ไม่สามารถย้อนกลับได้</strong>
+          {% if ticket.assigned_to %}และจะมีการแจ้งเตือนไปยังช่างที่รับผิดชอบ{% endif %}
+        </p>
+      </div>
+
+      <form method="post" class="cancel-form">
+        {% csrf_token %}
+        <div class="field">
+          <label class="label">เหตุผลในการยกเลิก <span class="muted">(ไม่บังคับ)</span></label>
+          <textarea name="reason" rows="4" class="input textarea" placeholder="ระบุเหตุผลที่ต้องการยกเลิก..."></textarea>
+        </div>
+
+        <div class="actions">
+          <a href="{% url 'tickets:ticket_detail' ticket.id %}" class="pill-btn pill-btn--ghost">กลับ</a>
+          <button type="submit" class="pill-btn pill-btn--red">ยืนยันการยกเลิก</button>
+        </div>
+      </form>
     </div>
 
-    <!-- Cancel Form -->
-    <form method="post">
-      {% csrf_token %}
-
-      <div class="mb-6">
-        <label class="block text-sm font-medium text-gray-700 mb-2">เหตุผลในการยกเลิก (ไม่บังคับ)</label>
-        <textarea name="reason" rows="4"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="ระบุเหตุผลที่ต้องการยกเลิก..."></textarea>
-      </div>
-
-      <!-- Buttons -->
-      <div class="flex justify-end space-x-3">
-        <a href="{% url 'tickets:ticket_detail' ticket.id %}"
-           class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-          กลับ
-        </a>
-        <button type="submit"
-                class="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-          ยืนยันการยกเลิก
-        </button>
-      </div>
-    </form>
   </div>
 </div>
 {% endblock %}

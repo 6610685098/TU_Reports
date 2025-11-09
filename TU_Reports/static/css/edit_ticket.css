@@ -1,0 +1,109 @@
+:root{
+  --red:#C8102E; --red-dark:#a10d25; --gold:#FFB81C;
+  --ink:#111827; --muted:#6b7280; --line:#e5e7eb;
+  --card:#fff; --bg:#fff8e1; --shadow:0 18px 45px rgba(0,0,0,.08);
+  --pill:999px; --r-lg:18px;
+}
+
+.page-soft-bg{
+  background:
+    radial-gradient(900px 600px at 10% -10%, #fff7e6 0%, transparent 60%),
+    radial-gradient(900px 600px at 110% 110%, #ffe9e9 0%, transparent 60%),
+    linear-gradient(180deg, #fffdf8, #fff9f3);
+  min-height: calc(100vh - 56px);
+  padding:28px 0;
+}
+.wrap{ max-width: 950px; margin: 0 auto; padding: 28px 14px; }
+
+.soft-card{
+  background: var(--card);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+}
+
+.hero{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:18px 20px; }
+.hero-left{ display:flex; flex-direction:column; gap:2px; }
+.hero-title{ font-size:1.6rem; font-weight:900; color:var(--ink); margin:0; }
+.hero-sub{ color:var(--muted); margin:2px 0 0; }
+.chip{ display:inline-flex; align-items:center; gap:.35rem; padding:.15rem .6rem; border-radius: var(--pill); font-size:.85rem; font-weight:800; }
+.chip--amber{ background:#fff3d4; color:#92400e; }
+
+.ticket-form{
+  margin-top: 16px;
+  padding: 20px;
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.field{ display:flex; flex-direction:column; gap:8px; }
+.field.col-span-2{ grid-column: 1 / -1; }
+
+.label{ font-weight:800; color:var(--ink); }
+.req{ color:var(--red); }
+.hint{ color:var(--muted); font-size:.85rem; margin-top: -2px; }
+
+.ticket-form input[type="text"],
+.ticket-form input[type="number"],
+.ticket-form input[type="email"],
+.ticket-form select,
+.ticket-form textarea{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius: 12px;
+  padding: .7rem .9rem;
+  font: inherit;
+  color: var(--ink);
+  outline: none;
+  transition: .15s ease;
+  background:#fff;
+}
+.ticket-form textarea{ min-height: 140px; resize: vertical; }
+.ticket-form input:focus,
+.ticket-form select:focus,
+.ticket-form textarea:focus{
+  border-color: #fecaca;
+  box-shadow: 0 0 0 3px rgba(200,16,46,.10);
+}
+
+.note{
+  display:flex; gap:12px; align-items:flex-start;
+  background:#f0f7ff; border:1px solid #dbeafe; border-radius:12px; padding:12px 14px;
+}
+.note--info .note__icon{ font-size:1.15rem; }
+.note__title{ margin:0; font-weight:800; color:#0f172a; }
+.note__desc{ margin:.15rem 0 0; color:#334155; }
+
+.location-card{
+  display:flex; gap:10px; flex-wrap:wrap;
+  background:#f9fafb; border:1px solid var(--line); border-radius:12px; padding:10px 12px;
+}
+.loc-pill{
+  background:#fff; border:1px solid var(--line); border-radius: var(--pill);
+  padding:.35rem .8rem; font-weight:700; color:#111827;
+}
+
+.actions{
+  display:flex; justify-content:flex-end; gap:10px; margin-top: 6px;
+}
+.pill-btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:.65rem 1.1rem; border-radius: var(--pill); font-weight:900; text-decoration:none; border:1px solid transparent;
+}
+.pill-btn--ghost{
+  background:#fff; color:#111827; border-color: var(--line);
+}
+.pill-btn--ghost:hover{ background:#f9fafb; }
+.pill-btn--red{
+  background: var(--red); color:#fff;
+  box-shadow: 0 10px 22px rgba(200,16,46,.18);
+}
+.pill-btn--red:hover{ background: var(--tu-red-dark); }
+
+.mb-6{ margin-bottom: 1.1rem; }
+
+@media (max-width: 768px){
+  .ticket-form{ grid-template-columns: 1fr; }
+  .hero{ align-items:flex-start; flex-direction:column; }
+}
+

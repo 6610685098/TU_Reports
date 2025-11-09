@@ -8,14 +8,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="td-container max-w-7xl mx-auto py-8 px-4">
+<div class="page-soft-bg">
+<div class="td-container max-w-7xl mx-auto py-8 px-4 ">
   <div class="mb-6">
     <a href="{% url 'tickets:my_tickets' %}" class="td-link-back">&larr; กลับไปหน้างานของฉัน</a>
   </div>
   <div class="td-card mb-6">
     <div class="td-header">
       <div>
-        <h1 class="td-title">Ticket #{{ ticket.id }}</h1>
+        <h1 class="td-title">รายละเอียดงาน #{{ ticket.id }}</h1>
         <p class="td-sub">สร้างเมื่อ {{ ticket.created_at|date:"d/m/Y H:i" }}</p>
       </div>
 
@@ -211,7 +212,7 @@
       </div>
     </form>
   </div>
-
+</div>
   <script>
     function checkAfterPhoto() {
       const fileInput = document.getElementById('after_photo');

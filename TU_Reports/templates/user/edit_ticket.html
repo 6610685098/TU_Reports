@@ -3,72 +3,89 @@
 
 {% block title %}แก้ไข Ticket #{{ ticket.id }} - TU Report{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/edit_ticket.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="max-w-4xl mx-auto py-8 px-4">
-  <div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-800">แก้ไข Ticket #{{ ticket.id }}</h1>
-    <p class="text-sm text-gray-600 mt-2">สามารถแก้ไขได้เฉพาะ Ticket ที่มีสถานะ "รอดำเนินการ" เท่านั้น</p>
-  </div>
+<div class="page-soft-bg">
+  <div class="wrap">
 
-  <form method="post" enctype="multipart/form-data" class="bg-white rounded-lg shadow p-6 space-y-6">
-    {% csrf_token %}
-
-    <!-- Title -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">หัวข้อปัญหา *</label>
-      {{ form.title }}
-    </div>
-
-    <!-- Category -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่ *</label>
-      {{ form.category }}
-    </div>
-
-    <!-- Description -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">รายละเอียด *</label>
-      {{ form.description }}
-    </div>
-
-    <!-- Urgency -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">ระดับความเร่งด่วน *</label>
-      {{ form.urgency_level }}
-    </div>
-
-    <!-- Address -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">สถานที่ (อาคาร/ห้อง)</label>
-      {{ form.address_description }}
-    </div>
-
-    <!-- Info about non-editable fields -->
-    <div class="bg-blue-50 border border-blue-200 rounded p-4">
-      <p class="text-sm text-blue-800">
-        <strong>หมายเหตุ:</strong> ไม่สามารถแก้ไข GPS location และรูปภาพก่อนซ่อมได้
-      </p>
-    </div>
-
-    <!-- Current Location (Read-only) -->
-    {% if ticket.location %}
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2"> ตำแหน่งปัจจุบัน (ไม่สามารถแก้ไขได้)</label>
-      <div class="bg-gray-50 p-3 rounded border border-gray-200 text-sm text-gray-600">
-        Lat: {{ ticket.location.y|floatformat:6 }}, Lng: {{ ticket.location.x|floatformat:6 }}
+    <!-- Header -->
+    <div class="soft-card hero mb-6">
+      <div class="hero-left">
+        <h1 class="hero-title">แก้ไขรายละเอียดงาน #{{ ticket.id }}</h1>
+        <p class="hero-sub">แก้ไขได้เฉพาะงานที่มีสถานะ <span class="chip chip--amber">รอดำเนินการ</span> เท่านั้น</p>
       </div>
-    </div>
-    {% endif %}
-
-    <!-- Submit -->
-    <div class="flex justify-end space-x-3">
-      <a href="{% url 'tickets:ticket_detail' ticket.id %}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-        ยกเลิก
+      <a href="{% url 'tickets:ticket_detail' ticket.id %}" class="pill-btn pill-btn--ghost">
+        กลับไปหน้ารายละเอียด
       </a>
-      <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-        บันทึกการแก้ไข
-      </button>
     </div>
-  </form>
+
+    <!-- Form -->
+    <form method="post" enctype="multipart/form-data" class="soft-card ticket-form">
+      {% csrf_token %}
+
+      <!-- Title -->
+      <div class="field">
+        <label class="label">หัวข้อปัญหา <span class="req">*</span></label>
+        {{ form.title }}
+        <p class="hint">ควรตั้งให้สั้น กระชับ และสื่อสารชัดเจน</p>
+      </div>
+
+      <!-- Category -->
+      <div class="field">
+        <label class="label">หมวดหมู่ <span class="req">*</span></label>
+        {{ form.category }}
+      </div>
+
+      <!-- Urgency -->
+      <div class="field">
+        <label class="label">ระดับความเร่งด่วน <span class="req">*</span></label>
+        {{ form.urgency_level }}
+      </div>
+
+      <!-- Address -->
+      <div class="field">
+        <label class="label">สถานที่ (อาคาร/ห้อง)</label>
+        {{ form.address_description }}
+      </div>
+
+      <!-- Description -->
+      <div class="field col-span-2">
+        <label class="label">รายละเอียด <span class="req">*</span></label>
+        {{ form.description }}
+      </div>
+
+      <!-- Info -->
+      <div class="col-span-2">
+        <div class="note note--info">
+          <div class="note__icon">ℹ️</div>
+          <div class="note__body">
+            <p class="note__title">หมายเหตุ</p>
+            <p class="note__desc">ไม่สามารถแก้ไขตำแหน่ง GPS และรูปภาพ “ก่อนซ่อม” ได้</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Location (read only) -->
+      {% if ticket.location %}
+      <div class="col-span-2">
+        <label class="label mb-2">ตำแหน่งปัจจุบัน (อ่านอย่างเดียว)</label>
+        <div class="location-card">
+          <div class="loc-pill">Lat: {{ ticket.location.y|floatformat:6 }}</div>
+          <div class="loc-pill">Lng: {{ ticket.location.x|floatformat:6 }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Actions -->
+      <div class="actions col-span-2">
+        <a href="{% url 'tickets:ticket_detail' ticket.id %}" class="pill-btn pill-btn--ghost">ยกเลิก</a>
+        <button type="submit" class="pill-btn pill-btn--red">บันทึกการแก้ไข</button>
+      </div>
+    </form>
+
+  </div>
 </div>
 {% endblock %}
