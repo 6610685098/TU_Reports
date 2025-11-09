@@ -38,9 +38,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'about',
-    'dashboard',
-    'tickets',
-    'authentication',
 ]
 
 MIDDLEWARE = [
@@ -58,7 +55,7 @@ ROOT_URLCONF = 'TU_Reports.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -86,8 +83,6 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
-AUTH_USER_MODEL = 'authentication.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -127,18 +122,4 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = "/dashboard/"
-LOGOUT_REDIRECT_URL = "/login/"
-
-TU_API_ENABLED = True
-TU_API_BASE_URL = "https://restapi.tu.ac.th"
-TU_APPLICATION_KEY = "TUefa2f6a38c1ec79dcfb23bb2074747dc91381e33471794e37e3dcf69712bcc024fed72ce50df9f0ff5e8cb1e0e136f8f"
