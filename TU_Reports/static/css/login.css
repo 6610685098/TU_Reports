@@ -1,0 +1,195 @@
+:root{
+  --red: #c8102e;
+  --red-dark: #a10d25;
+  --amber: #f59e0b;
+  --amber-dark: #d97706;
+
+  --bg-grad-1: #fff7e6; 
+  --bg-grad-2: #ffe5e5;  
+  --card-bg: #ffffff;
+
+  --text: #1f2937;
+  --text-muted: #6b7280;
+
+  --radius-xl: 22px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+
+  --shadow-1: 0 10px 25px rgba(0,0,0,.06);
+  --shadow-2: 0 16px 40px rgba(0,0,0,.10);
+  --ring-red: 0 0 0 3px rgba(200,16,46,.15);
+  --ring-amber: 0 0 0 3px rgba(245,158,11,.18);
+}
+
+.page-bg{
+  min-height: 100vh;
+  padding: 48px 16px;
+  background:
+    radial-gradient(1200px 800px at 15% 10%, #fffaf0 0%, transparent 60%),
+    radial-gradient(1000px 700px at 85% 15%, #fff1f2 0%, transparent 60%),
+    linear-gradient(135deg, var(--bg-grad-1), var(--bg-grad-2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container-center{ width: 100%; max-width: 480px; }
+
+.auth-card{
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2);
+  padding: 28px 28px 22px;
+  position: relative;
+  overflow: hidden;
+}
+.auth-card::before{
+  content: "";
+  position: absolute;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle at 30% 30%, rgba(255,204,0,.25), rgba(255,204,0,0));
+  top: -40px; left: -40px; border-radius: 50%;
+}
+.auth-card::after{
+  content: "";
+  position: absolute;
+  width: 220px; height: 220px;
+  background: radial-gradient(circle at 70% 70%, rgba(200,16,46,.16), rgba(200,16,46,0));
+  bottom: -60px; right: -60px; border-radius: 50%;
+}
+
+.brand{ display: flex; justify-content: center; }
+
+.brand__logo{
+  width: 250px;           
+  height: 250px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 8px;     
+  background: none;       
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.headings{
+  text-align: center;
+  margin-top: 4px;       
+  margin-bottom: 12px;
+}
+.title{
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.15;
+  color: var(--red);
+  font-weight: 800;
+  letter-spacing: .5px;
+}
+.subtitle{
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.messages{ margin-top: 14px; margin-bottom: 6px; }
+.message{
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.message + .message{ margin-top: 8px; }
+.message--error{  background:#fee2e2; color:#991b1b; border:1px solid #fecaca; }
+.message--success{ background:#ecfccb; color:#3f6212; border:1px solid #d9f99d; }
+
+.auth-form{ margin-top: 12px; }
+.form-group{ margin-bottom: 14px; }
+.label{
+  display: block;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.input{
+  display: block;
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius-lg);
+  padding: 10px 12px;
+  font-size: 15px;
+  outline: none;
+  background: #fff;
+  transition: box-shadow .15s ease, border-color .15s ease, transform .05s ease;
+}
+.input::placeholder{ color:#9ca3af; }
+.input:focus{ border-color: var(--red); box-shadow: var(--ring-red); }
+
+.action-group{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 6px;
+}
+.btn{
+  display: inline-flex; justify-content: center; align-items: center;
+  width: 100%; border: none; border-radius: 999px;
+  padding: 11px 16px; font-size: 15px; font-weight: 700; color: #fff;
+  cursor: pointer; transition: transform .05s ease, filter .15s ease, box-shadow .15s ease;
+  box-shadow: var(--shadow-1);
+}
+.btn:active{ transform: translateY(1px); }
+.btn--red{   background: linear-gradient(180deg, var(--red),   var(--red-dark)); }
+.btn--amber{ background: linear-gradient(180deg, var(--amber), var(--amber-dark)); }
+.btn--red:hover{   filter: brightness(1.03); box-shadow: 0 6px 18px rgba(200,16,46,.25); }
+.btn--amber:hover{ filter: brightness(1.03); box-shadow: 0 6px 18px rgba(245,158,11,.25); }
+.btn--red:focus{   box-shadow: var(--ring-red); }
+.btn--amber:focus{ box-shadow: var(--ring-amber); }
+
+.helper{
+  margin-top: 14px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.brand__logo{
+  width: 250px;
+  height: 250px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 0px;  
+}
+
+.headings{
+  text-align: center;
+  margin-top: -50px;      
+  margin-bottom: 12px;
+}
+
+.action-group{
+  display: flex;
+  justify-content: center;  
+  align-items: center;      
+  gap: 12px;                 
+  margin-top: 16px;
+  margin-bottom: 28px; 
+}
+
+.btn{
+  display: inline-block;
+  text-align: center;
+  min-width: 120px;         
+}
+
+@media (max-width: 420px){
+  .container-center{ max-width: 94%; }
+  .title{ font-size: 24px; }
+  .brand__logo{ width: 180px; height: 180px; }  /* ย่อโลโก้บนจอเล็ก */
+}
+
+@media (max-width: 420px){
+  .brand__logo{ width: 180px; height: 180px; margin-bottom: 2px; }
+  .headings{ margin-top: 0; }
+}

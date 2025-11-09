@@ -4,179 +4,189 @@
 {% block title %}งานของฉัน - TU Report{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto py-8 px-4">
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl font-bold text-gray-800">งานของฉัน</h1>
-    <a href="{% url 'tickets:create_ticket' %}" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-      + แจ้งปัญหาใหม่
-    </a>
-  </div>
+<link rel="stylesheet" href="{% static 'css/my_tickets.css' %}">
 
-  <!-- Statistics Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-      <div class="text-sm text-yellow-600 font-medium">รอดำเนินการ</div>
-      <div class="text-3xl font-bold text-yellow-700">{{ pending_count }}</div>
-    </div>
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-      <div class="text-sm text-blue-600 font-medium">กำลังดำเนินการ</div>
-      <div class="text-3xl font-bold text-blue-700">{{ in_progress_count }}</div>
-    </div>
-    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-      <div class="text-sm text-green-600 font-medium">เสร็จสิ้น</div>
-      <div class="text-3xl font-bold text-green-700">{{ completed_count }}</div>
-    </div>
-  </div>
-
-  <!-- Search & Filter -->
-  <div class="bg-white rounded-lg shadow p-6 mb-6">
-    <h2 class="text-lg font-semibold text-gray-800 mb-4"> ค้นหาและกรอง</h2>
-    <form method="get" class="space-y-4">
-      <!-- Search Bar -->
-      <div>
-        <input type="text" name="search" value="{{ search_query }}" placeholder="ค้นหาจากหัวข้อหรือรายละเอียด..."
-               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+<div class="page-soft-bg">
+  <div class="wrap">
+    <div class="soft-card hero mb-6">
+      <div class="hero-left">
+        <h1 class="hero-title">งานของฉัน</h1>
+        <p class="hero-sub">ติดตาม Ticket ที่คุณสร้างทั้งหมด พร้อมตัวกรองและการค้นหา</p>
       </div>
-
-      <!-- Filters Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <!-- Status Filter -->
+      <a href="{% url 'tickets:create_ticket' %}" class="pill-btn pill-btn--red">
+        + แจ้งปัญหาใหม่
+      </a>
+    </div>
+    <div class="grid grid-3 mb-6">
+      <div class="soft-card stat stat--amber">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">สถานะ</label>
-          <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
-            <option value="">ทั้งหมด</option>
-            <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>รอดำเนินการ</option>
-            <option value="IN_PROGRESS" {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>รับงานแล้ว</option>
-            <option value="INSPECTING" {% if status_filter == 'INSPECTING' %}selected{% endif %}>กำลังตรวจสอบ</option>
-            <option value="WORKING" {% if status_filter == 'WORKING' %}selected{% endif %}>กำลังดำเนินการ</option>
-            <option value="COMPLETED" {% if status_filter == 'COMPLETED' %}selected{% endif %}>เสร็จสิ้น</option>
-            <option value="CLOSED" {% if status_filter == 'CLOSED' %}selected{% endif %}>ปิดงาน</option>
-            <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>ปฏิเสธ</option>
-          </select>
+          <p class="stat-label">รอดำเนินการ</p>
+          <p class="stat-value">{{ pending_count }}</p>
+        </div>
+      </div>
+      <div class="soft-card stat stat--blue">
+        <div>
+          <p class="stat-label">กำลังดำเนินการ</p>
+          <p class="stat-value">{{ in_progress_count }}</p>
+          <i class="stat-icon fas fa-spinner fa-pulse"></i>
+        </div>
+      </div>
+      <div class="soft-card stat stat--green">
+        <div>
+          <p class="stat-label">เสร็จสิ้น</p>
+          <p class="stat-value">{{ completed_count }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="soft-card mb-6">
+      <div class="panel-head">
+        <h2 class="panel-title">ค้นหาและกรอง</h2>
+      </div>
+      <form method="get" class="filter-form">
+        <div class="search-row">
+          <input type="text" name="search" value="{{ search_query }}"
+                 placeholder="ค้นหาจากหัวข้อหรือรายละเอียด..."
+                 class="search-input">
+        </div>
+        <div class="filters-grid">
+          <div class="field">
+            <label class="filter-label">สถานะ</label>
+            <div class="select-wrap">
+              <select name="status" class="filter-select">
+                <option value="">ทั้งหมด</option>
+                <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>รอดำเนินการ</option>
+                <option value="IN_PROGRESS" {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>รับงานแล้ว</option>
+                <option value="INSPECTING" {% if status_filter == 'INSPECTING' %}selected{% endif %}>กำลังตรวจสอบ</option>
+                <option value="WORKING" {% if status_filter == 'WORKING' %}selected{% endif %}>กำลังดำเนินการ</option>
+                <option value="COMPLETED" {% if status_filter == 'COMPLETED' %}selected{% endif %}>เสร็จสิ้น</option>
+                <option value="CLOSED" {% if status_filter == 'CLOSED' %}selected{% endif %}>ปิดงาน</option>
+                <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>ปฏิเสธ</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="filter-label">หมวดหมู่</label>
+            <div class="select-wrap">
+              <select name="category" class="filter-select">
+                <option value="">ทั้งหมด</option>
+                {% for cat in categories %}
+                  <option value="{{ cat.id }}" {% if category_filter == cat.id|stringformat:"s" %}selected{% endif %}>
+                    {{ cat.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="filter-label">ความเร่งด่วน</label>
+            <div class="select-wrap">
+              <select name="urgency" class="filter-select">
+                <option value="">ทั้งหมด</option>
+                <option value="LOW" {% if urgency_filter == 'LOW' %}selected{% endif %}>ต่ำ</option>
+                <option value="NORMAL" {% if urgency_filter == 'NORMAL' %}selected{% endif %}>ปานกลาง</option>
+                <option value="HIGH" {% if urgency_filter == 'HIGH' %}selected{% endif %}>สูง</option>
+                <option value="CRITICAL" {% if urgency_filter == 'CRITICAL' %}selected{% endif %}>เร่งด่วนมาก</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="filter-label">เรียงตาม</label>
+            <div class="select-wrap">
+              <select name="sort" class="filter-select">
+                <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>ล่าสุด</option>
+                <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>เก่าสุด</option>
+                <option value="-urgency_level" {% if sort_by == '-urgency_level' %}selected{% endif %}>เร่งด่วนมากสุด</option>
+                <option value="urgency_level" {% if sort_by == 'urgency_level' %}selected{% endif %}>เร่งด่วนน้อยสุด</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        <!-- Category Filter -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่</label>
-          <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
-            <option value="">ทั้งหมด</option>
-            {% for cat in categories %}
-            <option value="{{ cat.id }}" {% if category_filter == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+        <div class="dates-grid">
+          <div>
+            <label class="filter-label">วันที่เริ่มต้น</label>
+            <input type="date" name="date_from" value="{{ date_from }}" class="filter-input">
+          </div>
+          <div>
+            <label class="filter-label">วันที่สิ้นสุด</label>
+            <input type="date" name="date_to" value="{{ date_to }}" class="filter-input">
+          </div>
+        </div>
+
+        <div class="actions-row">
+          <button type="submit" class="pill-btn pill-btn--red">ค้นหา</button>
+          <a href="{% url 'tickets:my_tickets' %}" class="pill-btn pill-btn--ghost">ล้างตัวกรอง</a>
+
+          {% if search_query or status_filter or category_filter or urgency_filter or date_from or date_to %}
+          <span class="result-chip">ผลลัพธ์: {{ filtered_count }} รายการ</span>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+
+    <div class="soft-card">
+      <div class="table-wrap">
+        <table class="soft-table">
+          <thead>
+            <tr>
+              <th>Ticket ID</th>
+              <th>หัวข้อ</th>
+              <th>หมวดหมู่</th>
+              <th>สถานะ</th>
+              <th>ช่าง</th>
+              <th>วันที่สร้าง</th>
+              <th>การกระทำ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ticket in tickets %}
+            <tr>
+              <td class="whitespace-nowrap font-semibold">#{{ ticket.id }}</td>
+              <td class="title-cell">{{ ticket.title }}</td>
+              <td class="whitespace-nowrap text-gray-600">{{ ticket.category.name }}</td>
+              <td class="whitespace-nowrap">
+                {% if ticket.status == 'PENDING' %}
+                  <span class="status status--amber">รอดำเนินการ</span>
+                {% elif ticket.status == 'IN_PROGRESS' %}
+                  <span class="status status--blue">รับงานแล้ว</span>
+                {% elif ticket.status == 'INSPECTING' %}
+                  <span class="status status--blue">กำลังตรวจสอบ</span>
+                {% elif ticket.status == 'WORKING' %}
+                  <span class="status status--blue">กำลังดำเนินการ</span>
+                {% elif ticket.status == 'COMPLETED' %}
+                  <span class="status status--green">เสร็จสิ้น</span>
+                {% elif ticket.status == 'CLOSED' %}
+                  <span class="status">ปิดงาน</span>
+                {% elif ticket.status == 'REJECTED' %}
+                  <span class="status status--red">ปฏิเสธ</span>
+                {% endif %}
+              </td>
+              <td class="whitespace-nowrap text-gray-600">
+                {% if ticket.assigned_to %}
+                  {{ ticket.assigned_to.get_display_name }}
+                {% else %}
+                  <span class="text-gray-400">ยังไม่ได้มอบหมาย</span>
+                {% endif %}
+              </td>
+              <td class="whitespace-nowrap text-gray-600">{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
+              <td class="whitespace-nowrap">
+                <a class="link" href="{% url 'tickets:ticket_detail' ticket.id %}">ดูรายละเอียด</a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="py-10 text-center text-gray-400">
+                ยังไม่มี Ticket — <a href="{% url 'tickets:create_ticket' %}" class="link">แจ้งปัญหาใหม่</a>
+              </td>
+            </tr>
             {% endfor %}
-          </select>
-        </div>
-
-        <!-- Urgency Filter -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">ความเร่งด่วน</label>
-          <select name="urgency" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
-            <option value="">ทั้งหมด</option>
-            <option value="LOW" {% if urgency_filter == 'LOW' %}selected{% endif %}>ต่ำ</option>
-            <option value="NORMAL" {% if urgency_filter == 'NORMAL' %}selected{% endif %}>ปานกลาง</option>
-            <option value="HIGH" {% if urgency_filter == 'HIGH' %}selected{% endif %}>สูง</option>
-            <option value="CRITICAL" {% if urgency_filter == 'CRITICAL' %}selected{% endif %}>เร่งด่วนมาก</option>
-          </select>
-        </div>
-
-        <!-- Sort -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">เรียงตาม</label>
-          <select name="sort" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
-            <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>ล่าสุด</option>
-            <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>เก่าสุด</option>
-            <option value="-urgency_level" {% if sort_by == '-urgency_level' %}selected{% endif %}>เร่งด่วนมากสุด</option>
-            <option value="urgency_level" {% if sort_by == 'urgency_level' %}selected{% endif %}>เร่งด่วนน้อยสุด</option>
-          </select>
-        </div>
+          </tbody>
+        </table>
       </div>
-
-      <!-- Date Range -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">วันที่เริ่มต้น</label>
-          <input type="date" name="date_from" value="{{ date_from }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">วันที่สิ้นสุด</label>
-          <input type="date" name="date_to" value="{{ date_to }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
-        </div>
-      </div>
-
-      <!-- Buttons -->
-      <div class="flex gap-3">
-        <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-           ค้นหา
-        </button>
-        <a href="{% url 'tickets:my_tickets' %}" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
-           ล้างตัวกรอง
-        </a>
-        {% if search_query or status_filter or category_filter or urgency_filter or date_from or date_to %}
-        <span class="px-4 py-2 bg-blue-100 text-blue-800 rounded-md text-sm">
-          ผลลัพธ์: {{ filtered_count }} รายการ
-        </span>
-        {% endif %}
-      </div>
-    </form>
-  </div>
-
-  <!-- Tickets Table -->
-  <div class="bg-white rounded-lg shadow overflow-hidden">
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket ID</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">หัวข้อ</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">หมวดหมู่</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ช่าง</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่สร้าง</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">การกระทำ</th>
-        </tr>
-      </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
-        {% for ticket in tickets %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ ticket.id }}</td>
-          <td class="px-6 py-4 text-sm text-gray-900">{{ ticket.title }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ ticket.category.name }}</td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            {% if ticket.status == 'PENDING' %}
-              <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">รอดำเนินการ</span>
-            {% elif ticket.status == 'IN_PROGRESS' %}
-              <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">รับงานแล้ว</span>
-            {% elif ticket.status == 'INSPECTING' %}
-              <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">กำลังตรวจสอบ</span>
-            {% elif ticket.status == 'WORKING' %}
-              <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">กำลังดำเนินการ</span>
-            {% elif ticket.status == 'COMPLETED' %}
-              <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">เสร็จสิ้น</span>
-            {% elif ticket.status == 'CLOSED' %}
-              <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">ปิดงาน</span>
-            {% elif ticket.status == 'REJECTED' %}
-              <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">ปฏิเสธ</span>
-            {% endif %}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {% if ticket.assigned_to %}
-              {{ ticket.assigned_to.get_display_name }}
-            {% else %}
-              <span class="text-gray-400">ยังไม่ได้มอบหมาย</span>
-            {% endif %}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm">
-            <a href="{% url 'tickets:ticket_detail' ticket.id %}" class="text-red-600 hover:text-red-800">ดูรายละเอียด</a>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
-            ยังไม่มี Ticket <a href="{% url 'tickets:create_ticket' %}" class="text-red-600 hover:underline">แจ้งปัญหาใหม่</a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    </div>
   </div>
 </div>
 {% endblock %}

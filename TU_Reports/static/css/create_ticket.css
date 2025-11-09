@@ -1,0 +1,101 @@
+:root{
+  --red:#C8102E; --red-dark:#a10d25;
+  --gold:#FFB81C;
+  --blue:#2563eb; --blue-2:#60a5fa;
+  --gray-50:#fafafa; --gray-100:#f3f4f6; --gray-200:#e5e7eb; --text:#1f2937; --muted:#6b7280;
+  --r-2xl:28px; --r-xl:22px; --r-lg:16px; --pill:999px;
+  --shadow:0 18px 45px rgba(0,0,0,.10);
+}
+
+.page-soft-bg{
+  background:
+    radial-gradient(900px 600px at 10% -10%, #fff7e6 0%, transparent 60%),
+    radial-gradient(900px 600px at 110% 110%, #ffe9e9 0%, transparent 60%),
+    linear-gradient(180deg, #fffdf8, #fff9f3);
+  min-height: calc(100vh - 56px);
+  padding:28px 0;
+}
+.wrap{ max-width: 920px; margin:0 auto; padding:0 16px; }
+
+.soft-card{
+  background:#fff; border-radius:var(--r-2xl);
+  box-shadow:var(--shadow); border:1px solid rgba(0,0,0,.03);
+}
+.hero{ padding:22px 24px; }
+.hero-title{ font-size:26px; font-weight:900; color:var(--red); letter-spacing:.3px; }
+.hero-sub{ color:var(--muted); margin-top:6px; }
+
+.ticket-form{
+  padding:22px 24px;
+  display:grid; grid-template-columns:1fr 1fr; gap:16px 18px;
+}
+.ticket-form .col-span-2{ grid-column:1 / -1; }
+
+.label{ display:block; font-weight:800; color:#374151; margin-bottom:.45rem; }
+.label .req{ color:var(--red); }
+.hint{ font-size:.8rem; color:var(--muted); margin-top:.35rem; }
+
+.ticket-form input[type="text"],
+.ticket-form input[type="email"],
+.ticket-form input[type="number"],
+.ticket-form select,
+.ticket-form textarea{
+  width:100%; background:#fff; border:1px solid var(--gray-200);
+  border-radius:14px; padding:.65rem .85rem; font-weight:600; color:#111827;
+  box-shadow:0 4px 12px rgba(0,0,0,.04);
+}
+.ticket-form textarea{ min-height:130px; resize:vertical; }
+
+.gps-badge{
+  display:inline-flex; align-items:center; gap:.5rem;
+  padding:.35rem .65rem; border-radius:999px; font-weight:700; font-size:.85rem;
+  background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; margin:6px 0 12px;
+}
+.gps-badge.is-loading{ background:#fff7ed; border-color:#fde68a; color:#92400e; }
+.gps-badge.is-ok{ background:#ecfdf5; border-color:#bbf7d0; color:#166534; }
+.gps-badge.is-error{ background:#fee2e2; border-color:#fecaca; color:#991b1b; }
+
+.label-row{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:.35rem; }
+.label-row .mb-0{ margin-bottom:0; }
+.btn-row{ display:flex; gap:8px; }
+
+.map-card{ padding:10px; border-radius:18px; background:#fff; border:1px solid #f1f5f9; box-shadow:0 12px 28px rgba(0,0,0,.08); }
+.map-box{ width:100%; height:22rem; border-radius:14px; overflow:hidden; }
+.map-box .leaflet-control{ margin:12px; }
+.map-box .leaflet-control-zoom a{ border-radius:10px !important; box-shadow:0 6px 14px rgba(0,0,0,.08); }
+
+.dropzone{
+  display:flex; align-items:center; gap:14px; justify-content:center;
+  border:1.5px dashed #e5e7eb; background:#fafafa;
+  border-radius:16px; padding:18px; cursor:pointer; transition:border-color .15s ease, background .15s ease;
+}
+.dropzone.is-hover{ border-color:#bfdbfe; background:#eff6ff; }
+.dropzone input[type="file"]{ display:none; }
+.dz-icon{ font-size:28px; }
+.dz-text{ text-align:center; font-weight:700; color:#374151; }
+.dz-text .link{ color:#2563eb; text-decoration:underline; }
+.dz-sub{ font-weight:600; font-size:.8rem; color:#6b7280; margin-top:2px; }
+
+.preview{ margin-top:10px; }
+.preview-img{
+  width:220px; height:220px; object-fit:cover; border-radius:16px;
+  box-shadow:0 12px 28px rgba(0,0,0,.08); border:1px solid #e5e7eb;
+}
+.err{ color:#991b1b; background:#fee2e2; border:1px solid #fecaca; padding:.5rem .75rem; border-radius:12px; font-weight:700; display:inline-block; }
+
+.actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:4px; }
+.pill-btn{
+  border:none; border-radius:var(--pill); padding:.65rem 1.1rem; font-weight:900; color:#fff;
+  box-shadow:0 10px 22px rgba(0,0,0,.08); transition:transform .05s ease, filter .15s ease;
+}
+.pill-btn:active{ transform:translateY(1px); }
+.pill-btn--red{ background:linear-gradient(180deg,#C8102E,#a10d25); }
+.pill-btn--blue{ background:linear-gradient(180deg,#60a5fa,#2563eb); }
+.pill-btn--ghost{
+  background:#fff; color:#374151; border:1px solid #e5e7eb; box-shadow:none;
+}
+
+@media (max-width: 820px){
+  .ticket-form{ grid-template-columns:1fr; }
+  .label-row{ flex-direction:column; align-items:flex-start; gap:6px; }
+}
