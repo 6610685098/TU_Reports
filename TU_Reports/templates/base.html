@@ -1,245 +1,127 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+  {% load static %}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}TU Report{% endblock %}</title>
+
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          colors: {
-            'tu-red': '#C8102E',
-            'tu-gold': '#FFB81C',
-          }
+          colors: { 'tu-red':'#C8102E', 'tu-gold':'#FFB81C' }
         }
       }
     }
   </script>
+  {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50">
-  {% if user.is_authenticated %}
-    {% include 'components/navbar.html' %}
-  {% endif %}
 
-  <main>
+  {% if user.is_authenticated %}
+<nav class="nav-wrap">
+  <div class="nav">
+    <div class="nav-inner">
+      <div class="nav-left">
+        <a href="{% url 'dashboard:map' %}?latest_status=all" class="brand">
+          <span class="brand-text">TU REPORTS</span>
+        </a>
+
+        <div class="nav-center">
+          <a href="{% url 'tickets:my_tickets' %}"
+             class="nav-link {% if request.resolver_match.url_name in 'my_tickets ticket_detail edit_ticket' %}is-active{% endif %}">
+            <svg viewBox="0 0 24 24" class="ico"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+            <span>งานของฉัน</span>
+          </a>
+
+          <a href="{% url 'tickets:create_ticket' %}"
+             class="nav-link {% if request.resolver_match.url_name == 'create_ticket' %}is-active{% endif %}">
+            <svg viewBox="0 0 24 24" class="ico"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <span>แจ้งปัญหา</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <div class="who">
+          <span class="who-name">{{ user.get_display_name }}</span>
+          <span class="role-chip">{{ user.get_role_display }}</span>
+        </div>
+
+        <!-- Logout (desktop) -->
+        <a href="{% url 'authentication:logout' %}" class="nav-cta nav-logout hide-sm">
+          <svg viewBox="0 0 24 24" class="ico"><path d="M15 7l5 5-5 5M20 12H9" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M9 5H6a2 2 0 00-2 2v10a2 2 0 002 2h3" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+          <span>logout</span>
+        </a>
+
+        <!-- Burger (mobile) -->
+        <button class="nav-burger show-sm" aria-label="menu" id="navBurger">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Drawer (mobile) -->
+  <div class="nav-drawer" id="navDrawer">
+    <a href="{% url 'tickets:my_tickets' %}"
+       class="nav-drawer-link {% if request.resolver_match.url_name in 'my_tickets ticket_detail edit_ticket' %}is-active{% endif %}">
+      <svg viewBox="0 0 24 24" class="ico"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      <span>งานของฉัน</span>
+    </a>
+    <a href="{% url 'tickets:create_ticket' %}"
+       class="nav-drawer-link {% if request.resolver_match.url_name == 'create_ticket' %}is-active{% endif %}">
+      <svg viewBox="0 0 24 24" class="ico"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      <span>แจ้งปัญหา</span>
+    </a>
+    <a href="{% url 'authentication:logout' %}" class="nav-drawer-link">
+      <svg viewBox="0 0 24 24" class="ico"><path d="M15 7l5 5-5 5M20 12H9" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M9 5H6a2 2 0 00-2 2v10a2 2 0 002 2h3" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      <span>Logout</span>
+    </a>
+  </div>
+</nav>
+{% endif %}
+
+
+  <main class="main">
     {% block content %}{% endblock %}
   </main>
 
   {% if user.is_authenticated %}
-    {% include 'components/footer.html' %}
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2025 TU Report - Thammasat University Ticket Management System</p>
+      <p class="sub">สร้างโดย Django 5.0 | Powered by PostGIS</p>
+    </div>
+  </footer>
   {% endif %}
 
-  <!-- Real-time Notifications WebSocket -->
   {% if user.is_authenticated %}
   <script>
-    // WebSocket connection for real-time notifications
-    let notificationSocket = null;
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 5;
-    const reconnectDelay = 3000; // 3 seconds
-
-    function connectWebSocket() {
-      // Determine WebSocket protocol (ws:// or wss://)
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws/notifications/`;
-
-      try {
-        notificationSocket = new WebSocket(wsUrl);
-
-        notificationSocket.onopen = function(e) {
-          console.log(' WebSocket Connected');
-          reconnectAttempts = 0;
-        };
-
-        notificationSocket.onmessage = function(e) {
-          const data = JSON.parse(e.data);
-
-          if (data.type === 'connection_established') {
-            console.log(' Notification stream established');
-          } else if (data.type === 'notification') {
-            handleNewNotification(data.notification, data.unread_count);
-          } else if (data.type === 'pong') {
-            // Pong response from ping (for keep-alive)
-          }
-        };
-
-        notificationSocket.onclose = function(e) {
-          console.log(' WebSocket Disconnected');
-          // Attempt to reconnect
-          if (reconnectAttempts < maxReconnectAttempts) {
-            reconnectAttempts++;
-            console.log(`⏳ Reconnecting... (${reconnectAttempts}/${maxReconnectAttempts})`);
-            setTimeout(connectWebSocket, reconnectDelay);
-          } else {
-            console.log(' Max reconnect attempts reached');
-          }
-        };
-
-        notificationSocket.onerror = function(e) {
-          console.error(' WebSocket Error:', e);
-        };
-
-      } catch (error) {
-        console.error(' Failed to create WebSocket:', error);
-      }
-    }
-
-    function handleNewNotification(notification, unreadCount) {
-      console.log(' New Notification:', notification);
-
-      // Update unread count badge in navbar
-      updateNotificationBadge(unreadCount);
-
-      // Show browser notification if permission granted
-      showBrowserNotification(notification);
-
-      // Show toast notification (in-app)
-      showToastNotification(notification);
-    }
-
-    function updateNotificationBadge(count) {
-      const badge = document.querySelector('a[href*="notify"] span.bg-red-500');
-      if (badge) {
-        if (count > 0) {
-          badge.textContent = count > 99 ? '99+' : count;
-          badge.classList.remove('hidden');
-        } else {
-          badge.classList.add('hidden');
-        }
-      }
-    }
-
-    function showBrowserNotification(notification) {
-      // Check if browser supports notifications
-      if (!('Notification' in window)) return;
-
-      // Request permission if not granted
-      if (Notification.permission === 'granted') {
-        createBrowserNotification(notification);
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            createBrowserNotification(notification);
-          }
-        });
-      }
-    }
-
-    function createBrowserNotification(notification) {
-      const notif = new Notification(notification.title, {
-        body: notification.message,
-        icon: '/static/images/logo.png', // Add your logo
-        badge: '/static/images/badge.png',
-        tag: `notification-${notification.id}`,
-        requireInteraction: false,
+    const btn = document.getElementById('mobileMenuBtn');
+    const menu = document.getElementById('mobileMenu');
+    if (btn && menu) {
+      btn.addEventListener('click', ()=> {
+        const isHidden = menu.hasAttribute('hidden');
+        if (isHidden) menu.removeAttribute('hidden'); else menu.setAttribute('hidden','');
       });
-
-      notif.onclick = function() {
-        window.focus();
-        if (notification.ticket_id) {
-          window.location.href = `/tickets/${notification.ticket_id}/`;
-        } else {
-          window.location.href = '/notify/';
-        }
-        notif.close();
-      };
     }
-
-    function showToastNotification(notification) {
-      // Create toast element
-      const toast = document.createElement('div');
-      toast.className = 'fixed top-20 right-4 bg-white border-l-4 border-red-500 rounded-lg shadow-xl p-4 max-w-sm z-50 animate-slide-in';
-      toast.innerHTML = `
-        <div class="flex items-start">
-          <div class="flex-shrink-0">
-            ${getNotificationIcon(notification.notification_type)}
-          </div>
-          <div class="ml-3 flex-1">
-            <p class="text-sm font-semibold text-gray-900">${notification.title}</p>
-            <p class="mt-1 text-sm text-gray-600">${notification.message}</p>
-          </div>
-          <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-gray-400 hover:text-gray-600">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-      `;
-
-      document.body.appendChild(toast);
-
-      // Auto-remove after 5 seconds
-      setTimeout(() => {
-        toast.style.animation = 'slide-out 0.3s ease-out';
-        setTimeout(() => toast.remove(), 300);
-      }, 5000);
-    }
-
-    function getNotificationIcon(type) {
-      const icons = {
-        'NEW_TICKET': '',
-        'ASSIGNED': '',
-        'REASSIGNED': '',
-        'STATUS_CHANGE': '',
-        'COMPLETED': '',
-        'URGENT': '',
-        'COMMENT': '',
-        'FEEDBACK': '',
-      };
-      return `<span class="text-2xl">${icons[type] || ''}</span>`;
-    }
-
-    // Add CSS animations
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slide-in {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-      @keyframes slide-out {
-        from {
-          transform: translateX(0);
-          opacity: 1;
-        }
-        to {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-      }
-      .animate-slide-in {
-        animation: slide-in 0.3s ease-out;
-      }
-    `;
-    document.head.appendChild(style);
-
-    // Connect when page loads
-    connectWebSocket();
-
-    // Send ping every 30 seconds to keep connection alive
-    setInterval(() => {
-      if (notificationSocket && notificationSocket.readyState === WebSocket.OPEN) {
-        notificationSocket.send(JSON.stringify({
-          type: 'ping',
-          timestamp: new Date().toISOString()
-        }));
-      }
-    }, 30000);
-
-    // Reconnect when page becomes visible (if disconnected)
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && (!notificationSocket || notificationSocket.readyState === WebSocket.CLOSED)) {
-        connectWebSocket();
-      }
-    });
   </script>
   {% endif %}
+  <script>
+  const burger = document.getElementById('navBurger');
+  const drawer = document.getElementById('navDrawer');
+  if (burger) {
+    burger.addEventListener('click', () => {
+      burger.classList.toggle('is-open');
+      drawer.classList.toggle('is-open');
+    });
+  }
+</script>
+  {% block extra_js %}{% endblock %}
 </body>
 </html>
