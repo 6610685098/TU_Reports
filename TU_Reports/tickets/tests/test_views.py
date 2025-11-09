@@ -419,6 +419,41 @@ class EditTicketViewTests(TestCase):
         self.assertTrue(
             TicketStatusHistory.objects.filter(ticket=self.pending_ticket, note__icontains='แก้ไขข้อมูล').exists()
         )
+
+    def test_edit_view_post_request_invalid_data(self):
+        """
+        [Bad Path] ทดสอบการส่งฟอร์มแก้ไข (POST) ด้วยข้อมูล "ไม่ถูกต้อง"
+        """
+       
+        self.client.login(username='testuser', password='password123')
+
+        # ดึงข้อมูลเดิมมาเก็บไว้เปรียบเทียบ
+        original_title = self.pending_ticket.title 
+        original_history_count = TicketStatusHistory.objects.filter(ticket=self.pending_ticket).count()
+
+        invalid_data = {
+            'title': '',  # <-- นี่คือจุดที่ทำให้ฟอร์ม "ไม่" valid
+            'description': 'Updated description.',
+            'category': self.category.id, 
+            'urgency_level': 'HIGH'
+        }
+
+        # ส่ง POST request (self.edit_url มาจาก setUp)
+        response = self.client.post(self.edit_url, data=invalid_data)
+
+        # ตรวจสอบว่าอยู่ที่หน้าเดิม
+        self.assertEqual(response.status_code, 200)
+
+        # ตรวจสอบว่ามันแสดงหน้าแก้ไขซ้ำ 
+        self.assertTemplateUsed(response, 'user/edit_ticket.html')
+
+        # ตรวจสอบว่าข้อมูลใน DB ไม่ถูกอัปเดต
+        self.pending_ticket.refresh_from_db()
+        self.assertEqual(self.pending_ticket.title, original_title) 
+
+        # ตรวจสอบว่าไม่มี History record ใหม่ถูกสร้างขึ้น
+        new_history_count = TicketStatusHistory.objects.filter(ticket=self.pending_ticket).count()
+        self.assertEqual(new_history_count, original_history_count) 
         
 class CancelTicketViewTests(TestCase):
     """
