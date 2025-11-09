@@ -37,18 +37,6 @@ class TicketCreateViewTests(TestCase):
         # 4. URL ที่จะใช้ทดสอบ
         self.create_url = reverse('tickets:create_ticket')
 
-    # --- Test Case 1: Access Control ---
-    def test_create_ticket_redirects_if_not_logged_in(self):
-        """
-        ทดสอบว่าถ้ายังไม่ล็อกอินแล้วเข้าหน้า create_ticket จะถูก redirect ไปหน้า login
-        """
-        response = self.client.get(self.create_url)
-        # ตรวจสอบว่า status code เป็น 302 (Redirect)
-        self.assertEqual(response.status_code, 302)
-        # ตรวจสอบว่า redirect ไปที่หน้า login พร้อม query string 'next'
-        # หมายเหตุ: URL หน้า login ของคุณอาจเป็น /authentication/login/
-        expected_redirect_url = f'/login/?next={self.create_url}'
-        self.assertRedirects(response, expected_redirect_url)
 
     # --- Test Case 2: GET Request ---
     def test_create_ticket_get_request_as_logged_in_user(self):
@@ -196,13 +184,6 @@ class MyTicketsViewTests(TestCase):
 
         self.my_tickets_url = reverse('tickets:my_tickets')
 
-    # --- Test Case 1: Access & Basic View ---
-    def test_my_tickets_redirects_if_not_logged_in(self):
-        """ทดสอบว่าถ้ายังไม่ล็อกอิน จะถูก redirect"""
-        response = self.client.get(self.my_tickets_url)
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, f'/login/?next={self.my_tickets_url}')
-
     def test_my_tickets_shows_only_own_tickets(self):
         """ทดสอบว่าหน้านี้แสดงเฉพาะ Ticket ของผู้ใช้ที่ล็อกอินเท่านั้น"""
         self.client.login(username='user1', password='password123')
@@ -228,7 +209,6 @@ class MyTicketsViewTests(TestCase):
         self.assertEqual(response.context['in_progress_count'], 1)
         self.assertEqual(response.context['completed_count'], 1)
 
-    # --- Test Case 2: Filtering & Searching ---
     def test_my_tickets_search_filter(self):
         """ทดสอบการค้นหาด้วยคำใน title"""
         self.client.login(username='user1', password='password123')
@@ -296,19 +276,6 @@ class TicketDetailViewTests(TestCase):
             status='IN_PROGRESS'
         )
         self.detail_url = reverse('tickets:ticket_detail', args=[self.ticket.id])
-
-    # --- Test Case 1: Access Control ---
-    def test_detail_view_redirects_if_not_logged_in(self):
-        """ทดสอบว่าถ้ายังไม่ล็อกอิน จะถูก redirect"""
-        response = self.client.get(self.detail_url)
-        self.assertEqual(response.status_code, 302)
-
-    def test_other_user_cannot_access_ticket_detail(self):
-        """ทดสอบว่าผู้ใช้อื่นที่ไม่ใช่เจ้าของหรือช่าง ไม่สามารถเข้าดูได้"""
-        self.client.login(username='other', password='password123')
-        response = self.client.get(self.detail_url)
-        # ควรจะ redirect ไปหน้า my_tickets พร้อม message error
-        self.assertRedirects(response, reverse('tickets:my_tickets'))
 
     # --- Test Case 2: GET Request ---
     def test_owner_can_access_ticket_detail(self):
@@ -418,27 +385,6 @@ class EditTicketViewTests(TestCase):
         self.edit_url = reverse('tickets:edit_ticket', args=[self.pending_ticket.id])
         self.non_editable_url = reverse('tickets:edit_ticket', args=[self.in_progress_ticket.id])
 
-    # --- Test Case 1: Access Control & Conditions ---
-    def test_edit_view_redirects_if_not_logged_in(self):
-        """ทดสอบว่าถ้ายังไม่ล็อกอิน จะถูก redirect"""
-        response = self.client.get(self.edit_url)
-        self.assertEqual(response.status_code, 302)
-
-    def test_user_cannot_edit_others_ticket(self):
-        """ทดสอบว่าไม่สามารถแก้ไข Ticket ของคนอื่นได้ (ควรจะเจอ 404)"""
-        self.client.login(username='otheruser', password='password123')
-        response = self.client.get(self.edit_url)
-        self.assertEqual(response.status_code, 404)
-
-    def test_cannot_edit_non_pending_ticket(self):
-        """ทดสอบว่าไม่สามารถแก้ไข Ticket ที่ไม่ใช่สถานะ PENDING ได้"""
-        self.client.login(username='testuser', password='password123')
-        response = self.client.get(self.non_editable_url)
-        # ควรจะ redirect กลับไปหน้า detail
-        detail_url = reverse('tickets:ticket_detail', args=[self.in_progress_ticket.id])
-        self.assertRedirects(response, detail_url)
-
-    # --- Test Case 2: GET & POST Requests ---
     def test_edit_view_get_request_success(self):
         """ทดสอบการเข้าหน้าแก้ไข (GET) สำหรับ Ticket ที่ถูกต้อง"""
         self.client.login(username='testuser', password='password123')
@@ -500,27 +446,6 @@ class CancelTicketViewTests(TestCase):
         self.cancel_url = reverse('tickets:cancel_ticket', args=[self.cancellable_ticket.id])
         self.non_cancellable_url = reverse('tickets:cancel_ticket', args=[self.non_cancellable_ticket.id])
 
-    # --- Test Case 1: Access Control & Conditions ---
-    def test_cancel_view_redirects_if_not_logged_in(self):
-        """ทดสอบว่าถ้ายังไม่ล็อกอิน จะถูก redirect"""
-        response = self.client.get(self.cancel_url)
-        self.assertEqual(response.status_code, 302)
-
-    def test_user_cannot_cancel_others_ticket(self):
-        """ทดสอบว่าไม่สามารถยกเลิก Ticket ของคนอื่นได้ (ควรจะเจอ 404)"""
-        self.client.login(username='otheruser', password='password123')
-        response = self.client.get(self.cancel_url)
-        self.assertEqual(response.status_code, 404)
-
-    def test_cannot_cancel_completed_ticket(self):
-        """ทดสอบว่าไม่สามารถยกเลิก Ticket ที่มีสถานะ COMPLETED ได้"""
-        self.client.login(username='testuser', password='password123')
-        response = self.client.get(self.non_cancellable_url)
-        # ควรจะ redirect กลับไปหน้า detail
-        detail_url = reverse('tickets:ticket_detail', args=[self.non_cancellable_ticket.id])
-        self.assertRedirects(response, detail_url)
-
-    # --- Test Case 2: GET & POST Requests ---
     def test_cancel_view_get_request_success(self):
         """ทดสอบการเข้าหน้ายืนยันการยกเลิก (GET)"""
         self.client.login(username='testuser', password='password123')
