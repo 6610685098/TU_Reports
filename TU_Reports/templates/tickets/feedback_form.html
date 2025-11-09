@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ให้คะแนน - TU REPORT{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-8 px-4">
+  <h1 class="text-3xl font-bold mb-6"> ให้คะแนนความพึงพอใจ</h1>
+
+  <!-- Ticket Info -->
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-2">Ticket #{{ ticket.id }}: {{ ticket.title }}</h2>
+    <p class="text-gray-600">ช่าง: {{ ticket.assigned_to.get_display_name }}</p>
+    <p class="text-gray-600">เสร็จเมื่อ: {{ ticket.completed_at|date:"d/m/Y H:i" }}</p>
+  </div>
+
+  <!-- Feedback Form -->
+  <form method="post" class="bg-white rounded-lg shadow p-6">
+    {% csrf_token %}
+
+    <!-- Overall Rating -->
+    <div class="mb-8">
+      <label class="block text-lg font-medium mb-4">คะแนนความพึงพอใจโดยรวม *</label>
+      <div class="flex justify-center space-x-4">
+        {% for i in "12345" %}
+        <label class="cursor-pointer">
+          <input type="radio" name="overall_rating" value="{{ forloop.counter }}" required class="hidden rating-input">
+          <span class="star text-5xl text-gray-300 hover:text-yellow-400 transition"></span>
+        </label>
+        {% endfor %}
+      </div>
+      <p class="text-center text-sm text-gray-500 mt-2">คลิกเพื่อให้คะแนน (1 = แย่มาก, 5 = ดีมาก)</p>
+    </div>
+
+    <!-- Detailed Ratings -->
+    <div class="mb-6 border-t pt-6">
+      <h3 class="font-medium mb-4">คะแนนรายละเอียด (ไม่บังคับ)</h3>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm mb-2">ความเร็วในการตอบสนอง</label>
+          <select name="response_speed_rating" class="w-full border border-gray-300 rounded px-3 py-2">
+            <option value="">ไม่ระบุ</option>
+            {% for i in "12345" %}
+            <option value="{{ forloop.counter }}">{{ forloop.counter }} ดาว</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm mb-2">คุณภาพการทำงาน</label>
+          <select name="work_quality_rating" class="w-full border border-gray-300 rounded px-3 py-2">
+            <option value="">ไม่ระบุ</option>
+            {% for i in "12345" %}
+            <option value="{{ forloop.counter }}">{{ forloop.counter }} ดาว</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm mb-2">ความสุภาพเรียบร้อย</label>
+          <select name="politeness_rating" class="w-full border border-gray-300 rounded px-3 py-2">
+            <option value="">ไม่ระบุ</option>
+            {% for i in "12345" %}
+            <option value="{{ forloop.counter }}">{{ forloop.counter }} ดาว</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm mb-2">ความสะอาด</label>
+          <select name="cleanliness_rating" class="w-full border border-gray-300 rounded px-3 py-2">
+            <option value="">ไม่ระบุ</option>
+            {% for i in "12345" %}
+            <option value="{{ forloop.counter }}">{{ forloop.counter }} ดาว</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comment -->
+    <div class="mb-6">
+      <label class="block font-medium mb-2">ความคิดเห็นเพิ่มเติม (ไม่บังคับ)</label>
+      <textarea name="comment" rows="4" maxlength="500"
+                class="w-full border border-gray-300 rounded px-3 py-2"
+                placeholder="แชร์ประสบการณ์ของคุณ..."></textarea>
+      <p class="text-xs text-gray-500 mt-1">สูงสุด 500 ตัวอักษร</p>
+    </div>
+
+    <!-- Submit -->
+    <div class="flex justify-end space-x-3">
+      <a href="{% url 'tickets:ticket_detail' ticket.id %}"
+         class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50">
+        ยกเลิก
+      </a>
+      <button type="submit" class="px-6 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+        ส่งความคิดเห็น
+      </button>
+    </div>
+  </form>
+</div>
+
+<style>
+.rating-input:checked + .star {
+  color: #FBBF24;
+}
+</style>
+
+<script>
+// Star rating interaction
+const ratingInputs = document.querySelectorAll('.rating-input');
+const stars = document.querySelectorAll('.star');
+
+stars.forEach((star, index) => {
+  star.addEventListener('click', () => {
+    // Reset all stars
+    stars.forEach(s => s.style.color = '#D1D5DB');
+    // Fill stars up to clicked one
+    for (let i = 0; i <= index; i++) {
+      stars[i].style.color = '#FBBF24';
+    }
+  });
+});
+</script>
+{% endblock %}

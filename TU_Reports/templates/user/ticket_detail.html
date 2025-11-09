@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ticket #{{ ticket.id }} - TU Report{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ticket_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-soft-bg">
+<div class="td-container max-w-7xl mx-auto py-8 px-4 ">
+  <div class="mb-6">
+    <a href="{% url 'tickets:my_tickets' %}" class="td-link-back">&larr; กลับไปหน้างานของฉัน</a>
+  </div>
+  <div class="td-card mb-6">
+    <div class="td-header">
+      <div>
+        <h1 class="td-title">รายละเอียดงาน #{{ ticket.id }}</h1>
+        <p class="td-sub">สร้างเมื่อ {{ ticket.created_at|date:"d/m/Y H:i" }}</p>
+      </div>
+
+      <div class="text-right">
+        {% if ticket.status == 'PENDING' %}
+          <span class="td-badge td-badge--amber">รอดำเนินการ</span>
+        {% elif ticket.status == 'IN_PROGRESS' %}
+          <span class="td-badge td-badge--blue">รับงานแล้ว</span>
+        {% elif ticket.status == 'INSPECTING' %}
+          <span class="td-badge td-badge--blue">กำลังตรวจสอบ</span>
+        {% elif ticket.status == 'WORKING' %}
+          <span class="td-badge td-badge--blue">กำลังดำเนินการ</span>
+        {% elif ticket.status == 'COMPLETED' %}
+          <span class="td-badge td-badge--green">เสร็จสิ้น</span>
+        {% elif ticket.status == 'CLOSED' %}
+          <span class="td-badge">ปิดงาน</span>
+        {% elif ticket.status == 'REJECTED' %}
+          <span class="td-badge td-badge--red">ปฏิเสธ</span>
+        {% endif %}
+
+        {% if ticket.created_by == user %}
+        <div class="td-actions">
+          {% if ticket.status == 'PENDING' %}
+            <a href="{% url 'tickets:edit_ticket' ticket.id %}" class="td-btn td-btn--blue">แก้ไข</a>
+          {% endif %}
+
+          {% if ticket.status in 'PENDING,IN_PROGRESS,INSPECTING,WORKING' %}
+            <a href="{% url 'tickets:cancel_ticket' ticket.id %}" class="td-btn td-btn--red">ยกเลิก</a>
+          {% endif %}
+
+          {% if ticket.status in 'COMPLETED,CLOSED' %}
+            <a href="{% url 'tickets:submit_feedback' ticket.id %}" class="td-btn td-btn--green">ให้คะแนน</a>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="td-card mb-6">
+    <h2 class="td-section-title">รายละเอียดปัญหา</h2>
+
+    <div class="mb-3">
+      <h3 class="td-problem-title">{{ ticket.title }}</h3>
+    </div>
+
+    <p class="td-problem-desc">{{ ticket.description }}</p>
+
+    <div class="td-meta-grid">
+      <div>
+        <label class="td-meta-label">หมวดหมู่</label>
+        <p class="td-meta-value">{{ ticket.category.name }}</p>
+      </div>
+      <div>
+        <label class="td-meta-label">ความเร่งด่วน</label>
+        <p class="td-meta-value">
+          {% if ticket.urgency_level == 'LOW' %}<span class="td-text--green">ต่ำ</span>
+          {% elif ticket.urgency_level == 'MEDIUM' %}<span class="td-text--amber">ปานกลาง</span>
+          {% elif ticket.urgency_level == 'HIGH' %}<span class="td-text--orange">สูง</span>
+          {% elif ticket.urgency_level == 'CRITICAL' %}<span class="td-text--red">วิกฤต</span>
+          {% endif %}
+        </p>
+      </div>
+      <div>
+        <label class="td-meta-label">ผู้แจ้ง</label>
+        <p class="td-meta-value">{{ ticket.created_by.get_display_name }}</p>
+      </div>
+      <div>
+        <label class="td-meta-label">ช่างรับผิดชอบ</label>
+        <p class="td-meta-value">
+          {% if ticket.assigned_to %}{{ ticket.assigned_to.get_display_name }}
+          {% else %}<span class="td-text--muted">ยังไม่มอบหมาย</span>{% endif %}
+        </p>
+      </div>
+    </div>
+
+    {% if ticket.address_description %}
+    <div class="td-sep">
+      <label class="td-meta-label">สถานที่</label>
+      <p class="td-meta-value">{{ ticket.address_description }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="td-columns">
+    <div class="td-card">
+      <h2 class="td-section-title">สถานะ</h2>
+
+      <div class="td-timeline">
+        <div class="td-tl-line"></div>
+        <div class="td-tl-items">
+          {% for hist in history %}
+          <div class="td-tl-item">
+            <div class="td-tl-dot">
+              <svg class="td-tl-check" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="td-tl-content">
+              <p class="td-tl-title">{{ hist.get_new_status_display }}</p>
+              <p class="td-tl-meta">{{ hist.changed_by.get_display_name }} • {{ hist.timestamp|date:"d/m/Y H:i" }}</p>
+              {% if hist.comment %}
+              <p class="td-tl-note">{{ hist.comment }}</p>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <p class="td-empty">ไม่มีประวัติ</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="td-card">
+      <h2 class="td-section-title">รูปภาพ</h2>
+
+      {% if before_photo %}
+      <div class="td-photo-block">
+        <h3 class="td-photo-title">รูป Before</h3>
+        <img src="{{ before_photo.image.url }}" alt="Before Photo" class="td-photo">
+        <p class="td-photo-meta">อัปโหลดโดย: {{ before_photo.uploaded_by.get_display_name }}</p>
+      </div>
+      {% endif %}
+
+      {% if after_photo %}
+      <div class="td-photo-block">
+        <h3 class="td-photo-title">รูป After</h3>
+        <img src="{{ after_photo.image.url }}" alt="After Photo" class="td-photo">
+        <p class="td-photo-meta">อัปโหลดโดย: {{ after_photo.uploaded_by.get_display_name }}</p>
+      </div>
+      {% endif %}
+
+      {% if not before_photo and not after_photo %}
+      <div class="td-empty-block">
+        <svg class="td-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        <p class="td-empty">ยังไม่มีรูปภาพ</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if user.role == 'technician' and ticket.assigned_to == user and ticket.status not in 'COMPLETED,CLOSED,REJECTED' %}
+  <div class="td-card td-tech mt-6">
+    <h2 class="td-section-title">อัปเดตงาน</h2>
+
+    <form method="POST" enctype="multipart/form-data" id="technicianUpdateForm">
+      {% csrf_token %}
+
+      <div class="td-field">
+        <label for="new_status" class="td-label">เปลี่ยนสถานะ</label>
+        <select name="new_status" id="new_status" class="td-input">
+          <option value="">-- เลือกสถานะใหม่ --</option>
+          {% if ticket.status == 'PENDING' %}
+            <option value="IN_PROGRESS">รับงานแล้ว</option>
+          {% endif %}
+          {% if ticket.status in 'PENDING,IN_PROGRESS' %}
+            <option value="INSPECTING">กำลังตรวจสอบ</option>
+          {% endif %}
+          {% if ticket.status in 'PENDING,IN_PROGRESS,INSPECTING' %}
+            <option value="WORKING">กำลังดำเนินการ</option>
+          {% endif %}
+        </select>
+      </div>
+
+      <div class="td-field">
+        <label for="comment" class="td-label">หมายเหตุ</label>
+        <textarea name="comment" id="comment" rows="3" class="td-input" placeholder="ระบุรายละเอียดเพิ่มเติม (ถ้ามี)"></textarea>
+      </div>
+
+      <div class="td-field">
+        <label for="after_photo" class="td-label">
+          อัพโหลดรูป After
+          {% if not after_photo %}<span class="td-required">(จำเป็นสำหรับการส่งงาน)</span>{% endif %}
+        </label>
+        <input type="file" name="after_photo" id="after_photo" accept="image/*" class="td-input" onchange="checkAfterPhoto()">
+        {% if after_photo %}
+          <p class="td-msg td-msg--ok">มีรูป After แล้ว</p>
+        {% else %}
+          <p class="td-msg" id="no-after-message">ยังไม่มีรูป After</p>
+        {% endif %}
+      </div>
+
+      <div class="td-btn-row">
+        <button type="submit" name="action" value="update_status" class="td-btn td-btn--blue td-btn--block">อัปเดตสถานะ</button>
+
+        <button type="submit" name="action" value="submit_work" id="submitWorkBtn"
+          class="td-btn td-btn--block {% if after_photo %}td-btn--green{% else %}td-btn--disabled{% endif %}"
+          {% if not after_photo %}disabled{% endif %}>
+          ส่งงาน (เสร็จสิ้น)
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+  <script>
+    function checkAfterPhoto() {
+      const fileInput = document.getElementById('after_photo');
+      const submitBtn = document.getElementById('submitWorkBtn');
+      const noAfterMsg = document.getElementById('no-after-message');
+
+      if (fileInput.files.length > 0) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('td-btn--disabled');
+        submitBtn.classList.add('td-btn--green');
+        if (noAfterMsg) {
+          noAfterMsg.textContent = ' เลือกรูปแล้ว';
+          noAfterMsg.classList.add('td-msg--ok');
+        }
+      }
+    }
+  </script>
+  {% endif %}
+</div>
+{% endblock %}

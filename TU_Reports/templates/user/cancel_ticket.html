@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}  {# ✅ เพิ่มบรรทัดนี้ #}
+
+{% block title %}ยกเลิก Ticket #{{ ticket.id }} - TU Report{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cancel_ticket.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-soft-bg">
+  <div class="wrap">
+
+    <div class="soft-card hero mb-6">
+      <div>
+        <h1 class="hero-title">ยกเลิกงาน #{{ ticket.id }}</h1>
+        <p class="hero-sub">ยืนยันการยกเลิกงาน หากยกเลิกแล้วจะไม่สามารถย้อนกลับได้</p>
+      </div>
+    </div>
+
+    <div class="soft-card cancel-card">
+      <div class="info info--amber">
+        <div class="info-title">คุณกำลังจะยกเลิกงานนี้</div>
+        <ul class="info-list">
+          <li><strong>หัวข้อ:</strong> {{ ticket.title }}</li>
+          <li><strong>สถานะ:</strong> {{ ticket.get_status_display }}</li>
+          <li><strong>หมวดหมู่:</strong> {{ ticket.category.name }}</li>
+          {% if ticket.assigned_to %}
+          <li><strong>ช่างที่รับผิดชอบ:</strong> {{ ticket.assigned_to.get_display_name }}</li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <div class="info info--red">
+        <div class="info-title">คำเตือน</div>
+        <p class="info-text">
+          การยกเลิกงาน <strong>ไม่สามารถย้อนกลับได้</strong>
+          {% if ticket.assigned_to %}และจะมีการแจ้งเตือนไปยังช่างที่รับผิดชอบ{% endif %}
+        </p>
+      </div>
+
+      <form method="post" class="cancel-form">
+        {% csrf_token %}
+        <div class="field">
+          <label class="label">เหตุผลในการยกเลิก <span class="muted">(ไม่บังคับ)</span></label>
+          <textarea name="reason" rows="4" class="input textarea" placeholder="ระบุเหตุผลที่ต้องการยกเลิก..."></textarea>
+        </div>
+
+        <div class="actions">
+          <a href="{% url 'tickets:ticket_detail' ticket.id %}" class="pill-btn pill-btn--ghost">กลับ</a>
+          <button type="submit" class="pill-btn pill-btn--red">ยืนยันการยกเลิก</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

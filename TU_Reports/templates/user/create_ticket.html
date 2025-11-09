@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}แจ้งปัญหา - TU Report{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/create_ticket.css' %}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endblock %}
+
+{% block content %}
+<div class="page-soft-bg">
+  <div class="wrap">
+    <div class="soft-card hero mb-6">
+      <div>
+        <h1 class="hero-title">แจ้งปัญหา</h1>
+        <p class="hero-sub">กรอกข้อมูลให้ครบถ้วน ระบุตำแหน่งบนแผนที่ และอัปโหลดรูปก่อนซ่อม</p>
+      </div>
+    </div>
+    <!-- Form -->
+    <form method="post" enctype="multipart/form-data" class="soft-card ticket-form" id="ticketForm" novalidate>
+      {% csrf_token %}
+      <div class="field">
+        <label class="label">หัวข้อปัญหา <span class="req">*</span></label>
+        {{ form.title }}
+        <p class="hint">ตั้งหัวข้อสั้น ๆ และชัดเจน</p>
+      </div>
+      <div class="field">
+        <label class="label">หมวดหมู่ <span class="req">*</span></label>
+        {{ form.category }}
+      </div>
+      <div class="field">
+        <label class="label">ระดับความเร่งด่วน <span class="req">*</span></label>
+        {{ form.urgency_level }}
+      </div>
+      <div class="field col-span-2">
+        <label class="label">สถานที่ (อาคาร/ห้อง)</label>
+        {{ form.address_description }}
+      </div>
+      <div class="field col-span-2">
+        <label class="label">รายละเอียด 
+        {{ form.description }}
+      </div>
+      <div class="col-span-2">
+        <div class="label-row">
+          <label class="label mb-0">ตำแหน่งที่เกิดปัญหา <span class="req">*</span></label>
+          <div class="btn-row">
+            <button type="button" id="getGPS" class="pill-btn pill-btn--blue">ใช้ตำแหน่งปัจจุบัน (GPS)</button>
+          </div>
+        </div>
+        <div id="gpsStatus" class="gps-badge">ยังไม่ได้ระบุตำแหน่ง</div>
+
+        <div class="map-card">
+          <div id="map" class="map-box"></div>
+        </div>
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
+        <p class="hint mt-2">คลิกบนแผนที่หรือกดปุ่มด้านบนเพื่อระบุตำแหน่ง</p>
+      </div>
+      <div class="col-span-2">
+        <label class="label">รูปภาพก่อนซ่อม (Before Photo) 
+        <label class="dropzone" id="dropzone">
+          <input type="file" name="before_photo" id="before_photo" accept="image/*">
+          <div class="dz-icon">📷</div>
+          <div class="dz-text">
+            ลาก-วางไฟล์ที่นี่ หรือ <span class="link">เลือกไฟล์</span>
+            <div class="dz-sub">รองรับ JPG/PNG ขนาดไม่เกิน 5MB</div>
+          </div>
+        </label>
+        <div id="photoPreview" class="preview"></div>
+        <p class="hint">แนะนำให้ถ่ายให้เห็นบริเวณโดยรอบ เพื่อช่วยระบุจุดซ่อมได้แม่นยำ</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions col-span-2">
+        <a href="{% url 'tickets:my_tickets' %}" class="pill-btn pill-btn--ghost">ยกเลิก</a>
+        <button type="submit" class="pill-btn pill-btn--red" id="submitBtn">ส่งรายงาน</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // ===== Map =====
+  const map = L.map('map', { scrollWheelZoom: true }).setView([14.0708, 100.6057], 16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+  setTimeout(() => map.invalidateSize(), 150);
+
+  let marker;
+  const gpsStatus = document.getElementById('gpsStatus');
+  const latI = document.getElementById('latitude');
+  const lngI = document.getElementById('longitude');
+
+  function setBadge(type, text){
+    gpsStatus.className = 'gps-badge ' + (type || '');
+    gpsStatus.textContent = text;
+  }
+  document.getElementById('getGPS').addEventListener('click', function() {
+    setBadge('is-loading','กำลังค้นหาตำแหน่ง...');
+    if (!navigator.geolocation) {
+      setBadge('is-error','เบราว์เซอร์ไม่รองรับ GPS');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
+        latI.value = lat; lngI.value = lng;
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lng]).addTo(map);
+        map.setView([lat, lng], 17);
+        setBadge('is-ok','ใช้ตำแหน่งปัจจุบันแล้ว');
+      },
+      () => setBadge('is-error','ไม่สามารถเข้าถึง GPS ได้ กรุณาเลือกบนแผนที่')
+    );
+  });
+  // Click on map
+  map.on('click', function(e) {
+    if (marker) map.removeLayer(marker);
+    marker = L.marker(e.latlng).addTo(map);
+    latI.value = e.latlng.lat;
+    lngI.value = e.latlng.lng;
+    setBadge('is-ok','เลือกตำแหน่งบนแผนที่แล้ว');
+  });
+
+  // ===== Photo upload (drag & drop + preview + size check) =====
+  const dz = document.getElementById('dropzone');
+  const input = document.getElementById('before_photo');
+  const preview = document.getElementById('photoPreview');
+
+  ['dragenter','dragover'].forEach(evt => dz.addEventListener(evt, e => {
+    e.preventDefault(); e.stopPropagation(); dz.classList.add('is-hover');
+  }));
+  ['dragleave','drop'].forEach(evt => dz.addEventListener(evt, e => {
+    e.preventDefault(); e.stopPropagation(); dz.classList.remove('is-hover');
+  }));
+  dz.addEventListener('drop', (e) => {
+    input.files = e.dataTransfer.files;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+
+  input.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    preview.innerHTML = '';
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB
+      preview.innerHTML = '<div class="err">ไฟล์ใหญ่เกิน 5MB</div>';
+      input.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = document.createElement('img');
+      img.src = ev.target.result;
+      img.className = 'preview-img';
+      preview.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  const form = document.querySelector('#ticketForm');
+  const submitBtn = document.getElementById('submitBtn');
+  form.addEventListener('submit', (e) => {
+    if (!latI.value || !lngI.value) {
+      e.preventDefault();
+      setBadge('is-error','กรุณาระบุตำแหน่งบนแผนที่ หรือใช้ GPS');
+      document.getElementById('map').scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'กำลังส่ง...';
+  });
+</script>
+{% endblock %}

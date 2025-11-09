@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analytics Dashboard - TU REPORT{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .chart-container {
+        position: relative;
+        height: 400px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-800"> Analytics Dashboard</h1>
+        <p class="text-gray-600 mt-2">วิเคราะห์ข้อมูล Ticket และประสิทธิภาพการทำงาน</p>
+    </div>
+
+    <!-- Key Metrics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <!-- Total Tickets -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Tickets ทั้งหมด</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_tickets }}</p>
+                </div>
+                <div class="text-4xl"></div>
+            </div>
+        </div>
+
+        <!-- Pending -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">รอดำเนินการ</p>
+                    <p class="text-3xl font-bold text-yellow-600 mt-2">{{ pending }}</p>
+                </div>
+                <div class="text-4xl">⏳</div>
+            </div>
+        </div>
+
+        <!-- In Progress -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">กำลังดำเนินการ</p>
+                    <p class="text-3xl font-bold text-purple-600 mt-2">{{ in_progress }}</p>
+                </div>
+                <div class="text-4xl"></div>
+            </div>
+        </div>
+
+        <!-- Completed -->
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">เสร็จสิ้น</p>
+                    <p class="text-3xl font-bold text-green-600 mt-2">{{ completed }}</p>
+                </div>
+                <div class="text-4xl"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Category Distribution -->
+        <div class="stat-card">
+            <h3 class="text-lg font-semibold mb-4">การกระจายตามหมวดหมู่</h3>
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Status Distribution -->
+        <div class="stat-card">
+            <h3 class="text-lg font-semibold mb-4">การกระจายตามสถานะ</h3>
+            <div class="chart-container">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Average Rating -->
+    {% if avg_rating %}
+    <div class="stat-card mb-8">
+        <h3 class="text-lg font-semibold mb-4"> คะแนนเฉลี่ยความพึงพอใจ</h3>
+        <div class="flex items-center">
+            <div class="text-5xl font-bold text-yellow-500">{{ avg_rating|floatformat:1 }}</div>
+            <div class="ml-4">
+                <div class="flex">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= avg_rating|floatformat:0|add:"0" %}
+                            <span class="text-3xl text-yellow-400"></span>
+                        {% else %}
+                            <span class="text-3xl text-gray-300"></span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <p class="text-gray-600 text-sm mt-2">จากการประเมินของผู้ใช้งาน</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Technician Performance Table -->
+    <div class="stat-card">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold"> ประสิทธิภาพช่าง</h3>
+            <a href="{% url 'reports:export' %}" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                Export รายงาน
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อช่าง</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">จำนวนงาน</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for tech in technicians %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ tech.get_display_name }}</div>
+                            <div class="text-sm text-gray-500">@{{ tech.username }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-sm bg-blue-100 text-blue-800 rounded">
+                                {{ tech.assigned_count }} งาน
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-sm bg-green-100 text-green-800 rounded">
+                                Active
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="px-6 py-4 text-center text-gray-500">
+                            ไม่มีข้อมูลช่าง
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Development Notice -->
+    <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <p class="text-sm text-yellow-800">
+             <strong>หมายเหตุ:</strong> ฟีเจอร์ Analytics กำลังพัฒนา
+            - รอเพิ่ม: Heatmap, Timeline Charts, Advanced Metrics, PDF Export
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+<script>
+// Category Distribution Chart
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+const categoryData = {{ by_category|safe }};
+
+const categoryLabels = [];
+const categoryCounts = [];
+
+categoryData.forEach(item => {
+    categoryLabels.push(item.category__name || 'ไม่ระบุ');
+    categoryCounts.push(item.count);
+});
+
+new Chart(categoryCtx, {
+    type: 'pie',
+    data: {
+        labels: categoryLabels.length > 0 ? categoryLabels : ['ไม่มีข้อมูล'],
+        datasets: [{
+            data: categoryCounts.length > 0 ? categoryCounts : [1],
+            backgroundColor: [
+                '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Status Distribution Chart
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['รอดำเนินการ', 'กำลังดำเนินการ', 'เสร็จสิ้น'],
+        datasets: [{
+            data: [{{ pending }}, {{ in_progress }}, {{ completed }}],
+            backgroundColor: ['#FCD34D', '#A78BFA', '#34D399'],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

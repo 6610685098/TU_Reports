@@ -1,0 +1,79 @@
+:root{
+  --red:#C8102E; --red-dark:#a10d25;
+  --gold:#FFB81C;
+  --ink:#1f2937; --muted:#6b7280;
+  --gray-100:#f3f4f6; --gray-200:#e5e7eb;
+  --r-2xl:28px; --pill:999px;
+  --shadow:0 18px 45px rgba(0,0,0,.10);
+}
+
+.page-soft-bg{
+  background:
+    radial-gradient(900px 600px at 10% -10%, #fff7e6 0%, transparent 60%),
+    radial-gradient(900px 600px at 110% 110%, #ffe9e9 0%, transparent 60%),
+    linear-gradient(180deg, #fffdf8, #fff9f3);
+  min-height: calc(100vh - 56px);
+  padding:28px 0;
+}
+.wrap{ max-width: 780px; margin:0 auto; padding:0 16px; }
+
+.soft-card{
+  background:#fff; border-radius:var(--r-2xl);
+  box-shadow:var(--shadow); border:1px solid rgba(0,0,0,.03);
+}
+.hero{ padding:22px 24px; }
+.hero-title{ font-size:26px; font-weight:900; color:var(--red); letter-spacing:.3px; }
+.hero-sub{ color:var(--muted); margin-top:6px; }
+
+.cancel-card{ padding:22px 24px; }
+
+.info{
+  border-radius:16px; padding:14px 16px; margin-bottom:14px;
+  border:1px solid transparent;
+}
+.info--amber{
+  background:#fff7ed; border-color:#ffedd5;
+}
+.info--red{
+  background:#fee2e2; border-color:#fecaca;
+}
+.info-title{
+  font-weight:900; color:#111827; margin-bottom:.35rem;
+}
+.info-text{ color:#7f1d1d; }
+.info-list{
+  margin:0; padding-left: 1rem; color:#374151; line-height:1.6;
+}
+.info-list li{ list-style: disc; }
+
+.cancel-form{ margin-top: 16px; }
+.field{ margin-bottom: 14px; }
+.label{ display:block; font-weight:800; color:#374151; margin-bottom:.45rem; }
+.muted{ color:var(--muted); font-weight:600; }
+
+.input{
+  width:100%; background:#fff; border:1px solid var(--gray-200);
+  border-radius:14px; padding:.7rem .9rem;
+  font-weight:600; color:#111827;
+  box-shadow:0 4px 12px rgba(0,0,0,.04);
+}
+.textarea{ min-height:120px; resize:vertical; }
+
+.actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:10px; }
+.pill-btn{
+  border:none; border-radius:var(--pill); padding:.65rem 1.15rem; font-weight:900; color:#fff;
+  box-shadow:0 10px 22px rgba(0,0,0,.08); transition:transform .05s ease, filter .15s ease;
+}
+.pill-btn:active{ transform:translateY(1px); }
+.pill-btn--red{ background:linear-gradient(180deg,#C8102E,#a10d25); }
+.pill-btn--ghost{
+  background:#fff; color:#374151; border:1px solid #e5e7eb; box-shadow:none;
+}
+
+.mb-6{ margin-bottom: 1.25rem; }
+
+@media (max-width: 640px){
+  .wrap{ max-width: 100%; }
+  .hero-title{ font-size:24px; }
+  .cancel-card{ padding:18px 16px; }
+}

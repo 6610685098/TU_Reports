@@ -1,9 +1,10 @@
 asgiref==3.10.0
-dj-database-url==3.0.1
+certifi==2025.10.5
+charset-normalizer==3.4.4
 Django==5.2.7
-gunicorn==23.0.0
-packaging==25.0
-psycopg2-binary==2.9.11
+idna==3.11
+pillow==11.3.0
+requests==2.32.5
 sqlparse==0.5.3
 tzdata==2025.2
-whitenoise==6.11.0
+urllib3==2.5.0

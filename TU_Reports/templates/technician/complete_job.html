@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ทำงานเสร็จ - TU REPORT{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-8 px-4">
+  <h1 class="text-3xl font-bold mb-6"> ทำงานเสร็จ</h1>
+
+  <!-- Ticket Info -->
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4">Ticket #{{ ticket.id}}: {{ ticket.title }}</h2>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="text-sm text-gray-600">หมวดหมู่</label>
+        <p>{{ ticket.category.name }}</p>
+      </div>
+      <div>
+        <label class="text-sm text-gray-600">ผู้แจ้ง</label>
+        <p>{{ ticket.created_by.get_display_name }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- After Photo Form -->
+  <form method="post" enctype="multipart/form-data" class="bg-white rounded-lg shadow p-6">
+    {% csrf_token %}
+
+    <div class="mb-6">
+      <label class="block text-lg font-medium mb-2"> รูปภาพหลังซ่อม (After Photo) *</label>
+      <input type="file" name="after_photo" accept="image/*" required
+             class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
+      <p class="text-sm text-gray-500 mt-2">อัปโหลดรูปภาพเพื่อแสดงผลงานหลังซ่อม</p>
+      <div id="photoPreview" class="mt-4"></div>
+    </div>
+
+    <div class="mb-6">
+      <label class="block font-medium mb-2">หมายเหตุ (ถ้ามี)</label>
+      <textarea name="comment" rows="3" class="w-full border border-gray-300 rounded px-3 py-2"></textarea>
+    </div>
+
+    <div class="flex justify-end space-x-3">
+      <a href="{% url 'technician:job_list' %}" class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50">
+        ยกเลิก
+      </a>
+      <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+         ยืนยันทำงานเสร็จ
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+document.querySelector('input[name="after_photo"]').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('photoPreview').innerHTML =
+        '<img src="' + e.target.result + '" class="w-64 h-64 object-cover rounded border shadow">';
+    };
+    reader.readAsDataURL(file);
+  }
+});
+</script>
+{% endblock %}

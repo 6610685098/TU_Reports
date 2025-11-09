@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}เข้าสู่ระบบ - TU Report{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}"> 
+{% endblock %}
+
+{% block content %}
+<div class="page-bg">
+  <div class="container-center">
+    <div class="auth-card">
+      <div class="brand">
+        <img src="{% static 'images/logo.png' %}" alt="TU Logo" class="brand__logo">
+      </div>
+
+      <div class="headings">
+        <h1 class="title">TU REPORTS</h1>
+        <p class="subtitle">ระบบแจ้งซ่อมมหาวิทยาลัยธรรมศาสตร์</p>
+      </div>
+
+      {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+            <div class="message {% if message.tags == 'error' %}message--error{% else %}message--success{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" class="auth-form">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="username" class="label">ชื่อผู้ใช้</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            class="input"
+            required
+            placeholder="studentID"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="label">รหัสผ่าน</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="input"
+            required
+            placeholder="password"
+          >
+        </div>
+
+        <div class="action-group">
+          <button type="submit" name="login_type" value="tu_api" class="btn btn--red">Login</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

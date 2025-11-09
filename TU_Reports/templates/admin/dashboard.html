@@ -1,0 +1,340 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - TU Report{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Admin Dashboard</h1>
+
+  <!-- Statistics Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 bg-red-100 rounded-md p-3">
+          <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">Tickets ทั้งหมด</p>
+          <p class="text-2xl font-bold text-gray-900">{{ total_tickets }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 bg-yellow-100 rounded-md p-3">
+          <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">รอดำเนินการ</p>
+          <p class="text-2xl font-bold text-yellow-600">{{ pending_tickets }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
+          <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">กำลังดำเนินการ</p>
+          <p class="text-2xl font-bold text-blue-600">{{ in_progress_tickets }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
+          <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-500">เสร็จสิ้น</p>
+          <p class="text-2xl font-bold text-green-600">{{ completed_tickets }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Statistics -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">สถิติผู้ใช้</h2>
+      <div class="space-y-2">
+        <div class="flex justify-between">
+          <span class="text-gray-600">ผู้ใช้ทั้งหมด</span>
+          <span class="font-bold">{{ total_users }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-600">ช่างเทคนิค</span>
+          <span class="font-bold">{{ total_technicians }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Tickets ตามหมวดหมู่</h2>
+      <div class="space-y-2">
+        {% for item in tickets_by_category %}
+        <div class="flex justify-between">
+          <span class="text-gray-600">{{ item.category__name }}</span>
+          <span class="font-bold">{{ item.count }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Tickets -->
+  <div class="bg-white rounded-lg shadow mb-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-800">Tickets ล่าสุด</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">หัวข้อ</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">หมวดหมู่</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ผู้แจ้ง</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ช่าง</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">วันที่</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">จัดการ</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for ticket in recent_tickets %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ ticket.id }}</td>
+            <td class="px-6 py-4 text-sm text-gray-900">
+              <a href="{% url 'tickets:ticket_detail' ticket.id %}" class="text-red-600 hover:text-red-800 hover:underline">
+                {{ ticket.title|truncatewords:5 }}
+              </a>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ ticket.category.name }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {% if ticket.status == 'PENDING' %}
+                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">รอดำเนินการ</span>
+              {% elif ticket.status == 'IN_PROGRESS' %}
+                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">รับงานแล้ว</span>
+              {% elif ticket.status == 'INSPECTING' %}
+                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">กำลังตรวจสอบ</span>
+              {% elif ticket.status == 'WORKING' %}
+                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">กำลังดำเนินการ</span>
+              {% elif ticket.status == 'COMPLETED' %}
+                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">เสร็จสิ้น</span>
+              {% elif ticket.status == 'CLOSED' %}
+                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">ปิดงาน</span>
+              {% else %}
+                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">{{ ticket.get_status_display }}</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ ticket.created_by.get_display_name }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {% if ticket.assigned_to %}
+                {{ ticket.assigned_to.get_display_name }}
+              {% else %}
+                <span class="text-gray-400">-</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ ticket.created_at|date:"d/m/Y" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              <div class="flex gap-2">
+                <!-- Change Status Button -->
+                {% if ticket.status != 'CLOSED' %}
+                <button onclick="openStatusModal({{ ticket.id }}, '{{ ticket.status }}', '{{ ticket.title|escapejs }}')"
+                        class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition">
+                  เปลี่ยนสถานะ
+                </button>
+                {% endif %}
+
+                <!-- Close Ticket Button -->
+                {% if ticket.status == 'COMPLETED' %}
+                <button onclick="confirmCloseTicket({{ ticket.id }}, '{{ ticket.title|escapejs }}')"
+                        class="px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700 transition">
+                  ปิดงาน
+                </button>
+                {% elif ticket.status == 'CLOSED' %}
+                <span class="text-xs text-gray-400">ปิดแล้ว</span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent Login Logs -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-800">Login Logs ล่าสุด</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">รายละเอียด</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">IP Address</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">เวลา</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for log in recent_logs %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ log.username }}</td>
+            <td class="px-6 py-4 text-sm text-gray-500">{{ log.description|truncatewords:8 }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {% if log.status == 'SUCCESS' %}
+                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Success</span>
+              {% else %}
+                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Failed</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.login_method }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.ip_address|default:"-" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.created_at|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Status Change Modal -->
+<div id="statusModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="mt-3">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">เปลี่ยนสถานะ Ticket</h3>
+
+      <p class="text-sm text-gray-600 mb-2">Ticket: <span id="modalTicketTitle" class="font-semibold"></span></p>
+
+      <form id="statusChangeForm" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="ticket_id" id="modalTicketId">
+
+        <div class="mb-4">
+          <label for="new_status" class="block text-sm font-medium text-gray-700 mb-2">สถานะใหม่</label>
+          <select name="new_status" id="new_status" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500">
+            <option value="">-- เลือกสถานะใหม่ --</option>
+            <option value="PENDING">รอดำเนินการ</option>
+            <option value="IN_PROGRESS">รับงานแล้ว</option>
+            <option value="INSPECTING">กำลังตรวจสอบ</option>
+            <option value="WORKING">กำลังดำเนินการ</option>
+            <option value="COMPLETED">เสร็จสิ้น</option>
+            <option value="REJECTED">ปฏิเสธ</option>
+          </select>
+        </div>
+
+        <div class="mb-4">
+          <label for="admin_comment" class="block text-sm font-medium text-gray-700 mb-2">หมายเหตุ (ถ้ามี)</label>
+          <textarea name="admin_comment" id="admin_comment" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="ระบุเหตุผลในการเปลี่ยนสถานะ"></textarea>
+        </div>
+
+        <div class="flex gap-3">
+          <button type="button" onclick="closeStatusModal()" class="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition">
+            ยกเลิก
+          </button>
+          <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+            ยืนยัน
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Close Ticket Confirmation Modal -->
+<div id="closeTicketModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="mt-3">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">ยืนยันการปิดงาน</h3>
+
+      <p class="text-sm text-gray-600 mb-4">
+        คุณต้องการปิดงาน Ticket: <span id="closeTicketTitle" class="font-semibold"></span> ใช่หรือไม่?
+      </p>
+      <p class="text-xs text-gray-500 mb-4">
+        การปิดงานจะเปลี่ยนสถานะเป็น "ปิดงาน" และไม่สามารถย้อนกลับได้
+      </p>
+
+      <form id="closeTicketForm" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="ticket_id" id="closeTicketId">
+        <input type="hidden" name="action" value="close_ticket">
+
+        <div class="flex gap-3">
+          <button type="button" onclick="closeCloseTicketModal()" class="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition">
+            ยกเลิก
+          </button>
+          <button type="submit" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
+            ยืนยันปิดงาน
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Status Change Modal Functions
+  function openStatusModal(ticketId, currentStatus, ticketTitle) {
+    document.getElementById('modalTicketId').value = ticketId;
+    document.getElementById('modalTicketTitle').textContent = '#' + ticketId + ' - ' + ticketTitle;
+    document.getElementById('statusModal').classList.remove('hidden');
+
+    // Set form action
+    document.getElementById('statusChangeForm').action = '{% url "dashboard:admin_change_status" %}';
+  }
+
+  function closeStatusModal() {
+    document.getElementById('statusModal').classList.add('hidden');
+    document.getElementById('statusChangeForm').reset();
+  }
+
+  // Close Ticket Modal Functions
+  function confirmCloseTicket(ticketId, ticketTitle) {
+    document.getElementById('closeTicketId').value = ticketId;
+    document.getElementById('closeTicketTitle').textContent = '#' + ticketId + ' - ' + ticketTitle;
+    document.getElementById('closeTicketModal').classList.remove('hidden');
+
+    // Set form action
+    document.getElementById('closeTicketForm').action = '{% url "dashboard:admin_close_ticket" %}';
+  }
+
+  function closeCloseTicketModal() {
+    document.getElementById('closeTicketModal').classList.add('hidden');
+    document.getElementById('closeTicketForm').reset();
+  }
+
+  // Close modals when clicking outside
+  window.onclick = function(event) {
+    const statusModal = document.getElementById('statusModal');
+    const closeModal = document.getElementById('closeTicketModal');
+
+    if (event.target === statusModal) {
+      closeStatusModal();
+    }
+    if (event.target === closeModal) {
+      closeCloseTicketModal();
+    }
+  }
+</script>
+
+{% endblock %}
