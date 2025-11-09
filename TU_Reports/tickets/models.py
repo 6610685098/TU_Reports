@@ -63,13 +63,12 @@ class Ticket(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
 
-    # หมวดหมู่ (อนุญาตว่างได้ เผื่อบางเคสไม่ได้เลือก)
     category = models.ForeignKey(
         Category,
         on_delete=models.PROTECT,
         related_name="tickets",
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
     )
 
     created_by = models.ForeignKey(
