@@ -20,7 +20,7 @@
 
 ---
 
-**Deploy URL (about page)**: [https://tu-reports.onrender.com/about/](https://tu-reports.onrender.com/about/)
+**Deploy URL** : [https://tu-reports.onrender.com/](https://tu-reports.onrender.com/)
 
 ---
 
@@ -45,6 +45,7 @@
 - **Backend:** Django (Python)  
 - **Database:** PostgreSQL  
 - **Deployment:** Render 
+
 
 
 
