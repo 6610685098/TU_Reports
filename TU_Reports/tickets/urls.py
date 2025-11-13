@@ -10,4 +10,5 @@ urlpatterns = [
     path('<int:ticket_id>/edit/', views.edit_ticket, name='edit_ticket'),
     path('<int:ticket_id>/cancel/', views.cancel_ticket, name='cancel_ticket'),
     path('dispatch/<int:ticket_id>/', views.dispatch_ticket, name='dispatch_ticket'),
+    path('<int:ticket_id>/feedback/', views.submit_feedback, name='submit_feedback'),
 ]

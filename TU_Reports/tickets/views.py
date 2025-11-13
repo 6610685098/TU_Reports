@@ -262,7 +262,6 @@ def ticket_detail(request, ticket_id):
     }
     return render(request, 'user/ticket_detail.html', context)
 
-
 # -------------------------------------------------------------------
 # แก้ไข Ticket (เฉพาะ PENDING) ได้แล้ว
 # -------------------------------------------------------------------
@@ -346,3 +345,38 @@ def dispatch_ticket(request, ticket_id):
     else:
         messages.warning(request, f"ยังไม่สามารถมอบหมายช่าง: {result.reason}")
     return redirect('tickets:ticket_detail', ticket_id=ticket.id)
+
+@login_required
+def submit_feedback(request, ticket_id):
+    """ส่ง Feedback/Rating (บันทึกเฉพาะคะแนนรวม + คอมเมนต์ ตามโมเดลปัจจุบัน)"""
+    ticket = get_object_or_404(Ticket, id=ticket_id, created_by=request.user)
+
+    if ticket.status not in ['COMPLETED', 'CLOSED']:
+        messages.error(request, 'สามารถให้คะแนนได้เฉพาะงานที่เสร็จสิ้นแล้ว')
+        return redirect('tickets:ticket_detail', ticket_id=ticket_id)
+
+    if hasattr(ticket, 'feedback'):
+        messages.info(request, 'คุณได้ให้คะแนน Ticket นี้แล้ว')
+        return redirect('tickets:ticket_detail', ticket_id=ticket_id)
+
+    if request.method == 'POST':
+        # อ่านคะแนนรวมจากฟอร์ม แล้ว map ไปที่ TicketFeedback.rating
+        try:
+            overall = int(request.POST.get('overall_rating', ''))
+        except ValueError:
+            overall = None
+
+        if not overall or overall < 1 or overall > 5:
+            messages.error(request, 'กรุณาให้คะแนนความพึงพอใจโดยรวม (1–5 ดาว)')
+            return redirect('tickets:submit_feedback', ticket_id=ticket_id)
+
+        TicketFeedback.objects.create(
+            ticket=ticket,
+            rating=overall,
+            comment=request.POST.get('comment', '').strip(),
+            created_by=request.user,
+        )
+        messages.success(request, '⭐ ขอบคุณสำหรับความคิดเห็น!')
+        return redirect('tickets:ticket_detail', ticket_id=ticket_id)
+
+    return render(request, 'tickets/feedback_form.html', {'ticket': ticket})
