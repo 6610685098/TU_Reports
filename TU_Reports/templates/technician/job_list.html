@@ -13,9 +13,9 @@
       {% csrf_token %}
       <button type="submit" class="px-6 py-3 rounded-lg font-semibold transition-all {% if is_available %}bg-green-600 hover:bg-green-700 text-white{% else %}bg-gray-400 hover:bg-gray-500 text-white{% endif %}">
         {% if is_available %}
-           พร้อมรับงาน
+          ✅ พร้อมรับงาน
         {% else %}
-          ⏸ หยุดรับงาน
+          ⏸️ หยุดรับงาน
         {% endif %}
       </button>
     </form>
@@ -35,7 +35,7 @@
 
   <!-- Search & Filter -->
   <div class="bg-white rounded-lg shadow p-6 mb-6">
-    <h2 class="text-lg font-semibold text-gray-800 mb-4"> ค้นหาและกรอง</h2>
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">🔍 ค้นหาและกรอง</h2>
     <form method="get" class="space-y-4">
       <!-- Search Bar -->
       <div>
@@ -108,10 +108,10 @@
       <!-- Buttons -->
       <div class="flex gap-3">
         <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-           ค้นหา
+          🔍 ค้นหา
         </button>
         <a href="{% url 'technician:job_list' %}" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
-           ล้างตัวกรอง
+          🔄 ล้างตัวกรอง
         </a>
         {% if search_query or status_filter or category_filter or urgency_filter or date_from or date_to %}
         <span class="px-4 py-2 bg-blue-100 text-blue-800 rounded-md text-sm">
