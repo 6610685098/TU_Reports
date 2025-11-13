@@ -91,6 +91,13 @@
           {% else %}<span class="td-text--muted">ยังไม่มอบหมาย</span>{% endif %}
         </p>
       </div>
+      {% if not ticket.assigned_to and request.user.is_authenticated %}
+        {% if request.user.is_staff or request.user.is_superuser or request.user.role|lower in 'technician,dispatcher' %}
+          <a href="{% url 'tickets:dispatch_ticket' ticket.id %}" class="td-btn td-btn--blue">
+            มอบหมายอัตโนมัติ
+          </a>
+        {% endif %}
+      {% endif %}
     </div>
 
     {% if ticket.address_description %}
@@ -98,6 +105,16 @@
       <label class="td-meta-label">สถานที่</label>
       <p class="td-meta-value">{{ ticket.address_description }}</p>
     </div>
+    {% endif %}
+
+    {% if ticket.latitude and ticket.longitude %}
+    <a
+      href="https://www.google.com/maps/search/?api=1&query={{ ticket.latitude }},{{ ticket.longitude }}"
+      target="_blank" rel="noopener"
+      class="td-btn td-btn--blue"
+      title="เปิดจุดนี้บน Google Maps">
+      เปิดใน Google Maps
+    </a>
     {% endif %}
   </div>
 
@@ -116,10 +133,10 @@
               </svg>
             </div>
             <div class="td-tl-content">
-              <p class="td-tl-title">{{ hist.get_new_status_display }}</p>
-              <p class="td-tl-meta">{{ hist.changed_by.get_display_name }} • {{ hist.timestamp|date:"d/m/Y H:i" }}</p>
-              {% if hist.comment %}
-              <p class="td-tl-note">{{ hist.comment }}</p>
+              <p class="td-tl-title">{{ hist.get_status_display }}</p>
+              <p class="td-tl-meta">{{ hist.created_at|date:"d/m/Y H:i" }}</p>
+              {% if hist.note %}
+                <p class="td-tl-note">{{ hist.note }}</p>
               {% endif %}
             </div>
           </div>
