@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'dashboard',
     'tickets',
     'authentication',
+    'technician',
 ]
 
 MIDDLEWARE = [
