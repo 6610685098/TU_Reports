@@ -222,6 +222,7 @@ class AutoDispatcher:
     def find_best_technician(self, ticket: Ticket) -> DispatchResult:
         weight_dist = float(getattr(self.rule, "weight_distance", 1.0))
         weight_work = float(getattr(self.rule, "weight_workload", 2.0))
+        
 
         # 1) หา candidate ในรัศมี 20 → 40 → 80 กม. และ fallback ถ้าไม่มีพิกัด
         candidates = None

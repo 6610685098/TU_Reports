@@ -11,6 +11,22 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from decimal import Decimal
+
+# settings.py
+TECH_DEFAULT_AVAILABLE = True
+TECH_DEFAULT_LAT = '14.0730'
+TECH_DEFAULT_LON = '100.6060'
+
+DEFAULT_TECHNICIANS = [
+    {"username": "tech1", "password": "tech1234", "displayname_th": "ช่าง 1", "department": "งานบริการเทคนิค", "latitude": "14.0745", "longitude": "100.6060"},
+    {"username": "tech2", "password": "tech1234", "displayname_th": "ช่าง 2", "department": "งานบริการเทคนิค", "latitude": "14.0720", "longitude": "100.6090"},
+    {"username": "tech3", "password": "tech1234", "displayname_th": "ช่าง 3", "department": "งานบริการเทคนิค", "latitude": "14.0755", "longitude": "100.6035"},
+    {"username": "tech4", "password": "tech1234", "displayname_th": "ช่าง 4", "department": "งานบริการเทคนิค", "latitude": "14.0705", "longitude": "100.6075"},
+    {"username": "tech5", "password": "tech1234", "displayname_th": "ช่าง 5", "department": "งานบริการเทคนิค", "latitude": "14.0730", "longitude": "100.6040"},
+]
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,9 +55,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'about',
     'dashboard',
-    'tickets',
+    #'tickets',
     'authentication',
     'technician',
+    "tickets.apps.TicketsConfig",
 ]
 
 MIDDLEWARE = [
