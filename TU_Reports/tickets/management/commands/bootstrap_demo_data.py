@@ -1,70 +1,55 @@
 # tickets/management/commands/bootstrap_demo_data.py
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from django.conf import settings
 from decimal import Decimal
 
-from tickets.models import TechnicianPresence  # ใช้รุ่น model presence ที่คุณใช้อยู่
-
 class Command(BaseCommand):
-    help = "Create default technicians and ensure TechnicianPresence for all technicians."
+    help = "Create demo users and seed technician presence."
 
     def handle(self, *args, **options):
+        from tickets.models import TechnicianPresence
+
         User = get_user_model()
-        created_users = 0
-        updated_pw = 0
-        created_presence = 0
 
-        # 1) สร้างช่างตาม DEFAULT_TECHNICIANS (ถ้ายังไม่มี)
-        for item in getattr(settings, "DEFAULT_TECHNICIANS", []):
-            username = item["username"]
-            user, u_created = User.objects.get_or_create(
-                username=username,
+        # 1) สร้างช่าง demo ถ้ายังไม่มี
+        usernames = ["tech1", "tech2", "tech3", "tech4", "tech5"]
+        users_created = 0
+        for i, uname in enumerate(usernames, start=1):
+            u, created = User.objects.get_or_create(
+                username=uname,
                 defaults={
-                    "is_active": True,
                     "role": "technician",
-                    "displayname_th": item.get("displayname_th") or username,
-                    "department": item.get("department"),
+                    "is_active": True,
+                    # ตั้ง dept ให้บางคน เพื่อใช้ร่วมกับ auto-dispatch ตาม department
+                    "department": "งานบริการเทคนิค" if i in (1, 4) else None,
                 },
             )
-            if u_created:
-                created_users += 1
+            if created:
+                u.set_password("pass1234")
+                u.save(update_fields=["password"])
+                users_created += 1
 
-            # ตั้งรหัสผ่านเริ่มต้น/รีเซ็ตถ้า user ไม่มี usable password
-            if u_created or not user.has_usable_password():
-                user.set_password(item.get("password", "tech1234"))
-                user.save(update_fields=["password"])
-                if not u_created:
-                    updated_pw += 1
+        # 2) สร้าง/การันตี TechnicianPresence ให้ช่างทุกคน
+        DEFAULT_LAT = Decimal("14.0730")
+        DEFAULT_LON = Decimal("100.6060")
 
-            # presence สำหรับ user นี้
-            lat = item.get("latitude", getattr(settings, "TECH_DEFAULT_LAT", "14.0730"))
-            lon = item.get("longitude", getattr(settings, "TECH_DEFAULT_LON", "100.6060"))
-            _, p_created = TechnicianPresence.objects.get_or_create(
-                technician=user,
-                defaults={
-                    "is_available": getattr(settings, "TECH_DEFAULT_AVAILABLE", True),
-                    "latitude": Decimal(str(lat)),
-                    "longitude": Decimal(str(lon)),
-                },
-            )
-            if p_created:
-                created_presence += 1
-
-        # 2) กันพลาด: ช่างทุกคนในระบบ ต้องมี presence
-        qs_all_techs = User.objects.filter(is_active=True, role__iexact="technician")
-        for u in qs_all_techs:
-            _, p_created = TechnicianPresence.objects.get_or_create(
+        techs = User.objects.filter(role__iexact="technician", is_active=True)
+        presence_created = 0
+        for u in techs:
+            _, created = TechnicianPresence.objects.get_or_create(
                 technician=u,
                 defaults={
-                    "is_available": getattr(settings, "TECH_DEFAULT_AVAILABLE", True),
-                    "latitude": Decimal(getattr(settings, "TECH_DEFAULT_LAT", "14.0730")),
-                    "longitude": Decimal(getattr(settings, "TECH_DEFAULT_LON", "100.6060")),
+                    "is_available": True,
+                    "latitude": DEFAULT_LAT,
+                    "longitude": DEFAULT_LON,
                 },
             )
-            if p_created:
-                created_presence += 1
+            if created:
+                presence_created += 1
 
-        self.stdout.write(self.style.SUCCESS(
-            f"bootstrap_demo_data: users_created={created_users}, passwords_updated={updated_pw}, presence_created={created_presence}"
-        ))
+        # 3) สรุปผล
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"bootstrap_demo_data: users_created={users_created}, presence_created={presence_created}"
+            )
+        )

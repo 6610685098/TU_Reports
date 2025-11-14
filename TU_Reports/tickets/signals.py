@@ -60,3 +60,29 @@ def ensure_presence_on_user_save(instance, created, **kwargs):
     except Exception:
         # ไม่ให้การบันทึก user พังเพราะสัญญาณ
         pass
+
+
+@receiver(post_migrate)
+def ensure_presence_after_migrate(sender, **kwargs):
+    # ทำงานเฉพาะตอน migrate ของโปรเจกต์ (ไม่รันตอนทดสอบ third-party app)
+    app_label = getattr(sender, "label", None) or getattr(sender, "__name__", "")
+    if not app_label or not app_label.startswith(("tickets", "authentication", "technician", "dashboard")):
+        return
+
+    from tickets.models import TechnicianPresence
+
+    User = get_user_model()
+    techs = User.objects.filter(role__iexact="technician", is_active=True)
+
+    DEFAULT_LAT = Decimal("14.0730")
+    DEFAULT_LON = Decimal("100.6060")
+
+    for u in techs:
+        TechnicianPresence.objects.get_or_create(
+            technician=u,
+            defaults={
+                "is_available": True,
+                "latitude": DEFAULT_LAT,
+                "longitude": DEFAULT_LON,
+            },
+        )
