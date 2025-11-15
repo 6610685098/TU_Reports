@@ -10,4 +10,5 @@ urlpatterns = [
     path('jobs/<int:ticket_id>/complete/', views.complete_job, name='complete_job'),  # PRIORITY  (After Photo)
     path('update-status/<int:ticket_id>/', views.update_status, name='update_status'),
     path('availability/', views.update_availability, name='update_availability'),
+    path('my-tickets/', views.my_tickets, name='my_tickets_tech'),  
 ]
