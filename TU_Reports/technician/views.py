@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.utils import timezone
 from tickets.models import Ticket, TicketStatusHistory, BeforeAfterPhoto, TechnicianPresence
 from tickets.dispatcher import auto_dispatch_ticket
+from django.db.models import Q
 try:
     from notify.utils import (
         notify_ticket_accepted,
@@ -27,7 +28,7 @@ def job_list(request):
     """รายการงานของช่าง พร้อม Search & Filter"""
     if request.user.role != 'technician':
         messages.error(request, 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้')
-        return redirect('tickets:my_tickets')
+        return redirect('tickets:my_tickets_tech')
 
     # Base queryset - งานที่ได้รับมอบหมาย
     assigned_tickets = Ticket.objects.filter(assigned_to=request.user).exclude(
@@ -293,3 +294,86 @@ def update_availability(request):
         messages.warning(request, '⏸️ คุณหยุดรับงานใหม่ชั่วคราว (งานที่มีอยู่แล้วยังคงดำเนินการต่อ)')
 
     return redirect('technician:job_list')
+
+@login_required
+def my_tickets(request):
+    if request.user.role != 'technician':
+        messages.error(request, 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้')
+        return redirect('tickets:my_tickets')
+
+    tickets_qs = Ticket.objects.filter(created_by=request.user).exclude(
+        status__in=['CLOSED', 'REJECTED']
+    ).select_related('category', 'assigned_to')
+
+
+    search_query = request.GET.get('search', '').strip()
+    status_filter = request.GET.get('status', '')
+    category_filter = request.GET.get('category', '')
+    urgency_filter = request.GET.get('urgency', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    sort_by = request.GET.get('sort', '-created_at')
+
+    if search_query:
+        tickets_qs = tickets_qs.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+
+    if status_filter:
+        tickets_qs = tickets_qs.filter(status=status_filter)
+
+    if category_filter:
+        tickets_qs = tickets_qs.filter(category_id=category_filter)
+
+    if urgency_filter:
+        tickets_qs = tickets_qs.filter(urgency_level=urgency_filter)
+
+    if date_from:
+        from datetime import datetime
+        try:
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+            tickets_qs = tickets_qs.filter(created_at__gte=date_from_obj)
+        except ValueError:
+            pass
+
+    if date_to:
+        from datetime import datetime, timedelta
+        try:
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+            tickets_qs = tickets_qs.filter(created_at__lt=date_to_obj + timedelta(days=1))
+        except ValueError:
+            pass
+
+    if sort_by in ['-created_at', 'created_at', '-urgency_level', 'urgency_level']:
+        tickets_qs = tickets_qs.order_by(sort_by)
+    else:
+        tickets_qs = tickets_qs.order_by('-created_at')
+
+    from tickets.models import Category
+    categories = Category.objects.filter(is_active=True)
+
+    all_created = Ticket.objects.filter(created_by=request.user).exclude(
+        status__in=['CLOSED', 'REJECTED']
+    )
+
+    context = {
+        'assigned_tickets': tickets_qs,
+        'categories': categories,
+        'pending_count': all_created.filter(status='PENDING').count(),
+        'in_progress_count': all_created.filter(
+            status__in=['IN_PROGRESS', 'INSPECTING', 'WORKING']
+        ).count(),
+        'is_available': True,  
+        'mode': 'my_tickets_tech',   
+
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'category_filter': category_filter,
+        'urgency_filter': urgency_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'sort_by': sort_by,
+        'filtered_count': tickets_qs.count(),
+    }
+    return render(request, 'technician/job_list.html', context)
