@@ -49,9 +49,6 @@
               <a href="{% url 'tickets:cancel_ticket' ticket.id %}" class="td-btn td-btn--red">ยกเลิก</a>
             {% endif %}
 
-            <!-- {% if ticket.status in 'COMPLETED,CLOSED' %}
-              <a href="{% url 'tickets:submit_feedback' ticket.id %}" class="td-btn td-btn--green">ให้คะแนน</a>
-            {% endif %} -->
           </div>
           {% endif %}
         </div>
