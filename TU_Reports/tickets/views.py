@@ -157,11 +157,6 @@ def ticket_detail(request, ticket_id):
         id=ticket_id
     )
 
-    # สิทธิ์เข้าถึง
-    if ticket.created_by != request.user and getattr(request.user, 'role', None) not in ['admin', 'technician']:
-        messages.error(request, 'คุณไม่มีสิทธิ์เข้าถึง Ticket นี้')
-        return redirect('tickets:my_tickets')
-
     # ฝั่งช่างอัปโหลด AFTER / อัปเดตสถานะ / ส่งงาน
     if request.method == 'POST' and getattr(request.user, 'role', None) == 'technician' and ticket.assigned_to == request.user:
         action = request.POST.get('action')
