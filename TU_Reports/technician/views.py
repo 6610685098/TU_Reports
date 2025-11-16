@@ -28,7 +28,7 @@ def job_list(request):
     """รายการงานของช่าง พร้อม Search & Filter"""
     if request.user.role != 'technician':
         messages.error(request, 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้')
-        return redirect('tickets:my_tickets_tech')
+        return redirect('technician:my_tickets_tech')
 
     # Base queryset - งานที่ได้รับมอบหมาย
     assigned_tickets = Ticket.objects.filter(assigned_to=request.user).exclude(
@@ -137,10 +137,9 @@ def update_status(request, ticket_id):
         # Save history
         TicketStatusHistory.objects.create(
             ticket=ticket,
-            old_status=old_status,
-            new_status=new_status,
+            status=new_status,
             changed_by=request.user,
-            comment=comment
+            note=comment
         )
 
         messages.success(request, f'อัปเดตสถานะเป็น "{ticket.get_status_display()}" แล้ว')
@@ -169,10 +168,9 @@ def accept_job(request, ticket_id):
     # Save history
     TicketStatusHistory.objects.create(
         ticket=ticket,
-        old_status=old_status,
-        new_status='IN_PROGRESS',
+        status='IN_PROGRESS',
         changed_by=request.user,
-        comment='ช่างรับงานแล้ว'
+        note='ช่างรับงานแล้ว'
     )
 
     # Send notification to ticket creator
@@ -204,10 +202,9 @@ def reject_job(request, ticket_id):
     # Record rejection in history
     TicketStatusHistory.objects.create(
         ticket=ticket,
-        old_status='PENDING',
-        new_status='PENDING',
+        status='PENDING',
         changed_by=request.user,
-        comment=f'ช่าง {old_tech.get_display_name()} ปฏิเสธงาน'
+        note=f'ช่าง {old_tech.get_display_name()} ปฏิเสธงาน'
     )
 
     # Notify creator about rejection
@@ -249,15 +246,17 @@ def complete_job(request, ticket_id):
             photo = request.FILES['after_photo']
             BeforeAfterPhoto.objects.create(
                 ticket=ticket, photo_type='AFTER', image=photo,
-                uploaded_by=request.user, file_size=photo.size
+                uploaded_by=request.user
             )
             old_status = ticket.status
             ticket.status = 'COMPLETED'
             ticket.completed_at = timezone.now()
             ticket.save()
             TicketStatusHistory.objects.create(
-                ticket=ticket, old_status=old_status, new_status='COMPLETED',
-                changed_by=request.user, comment=request.POST.get('comment', 'ทำงานเสร็จแล้ว')
+                ticket=ticket,
+                status='COMPLETED',
+                changed_by=request.user,
+                note=request.POST.get('comment', 'ทำงานเสร็จแล้ว')
             )
 
             # Notify creator that work is completed
