@@ -376,4 +376,4 @@ def my_tickets(request):
         'sort_by': sort_by,
         'filtered_count': tickets_qs.count(),
     }
-    return render(request, 'technician/job_list.html', context)
+    return render(request, 'technician/tech_my_tickets.html', context)
