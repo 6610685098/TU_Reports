@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="max-w-3xl mx-auto py-8 px-4">
-  <h1 class="text-3xl font-bold mb-6"> ทำงานเสร็จ</h1>
+  <h1 class="text-3xl font-bold mb-6">✅ ทำงานเสร็จ</h1>
 
   <!-- Ticket Info -->
   <div class="bg-white rounded-lg shadow p-6 mb-6">
@@ -27,7 +27,7 @@
     {% csrf_token %}
 
     <div class="mb-6">
-      <label class="block text-lg font-medium mb-2"> รูปภาพหลังซ่อม (After Photo) *</label>
+      <label class="block text-lg font-medium mb-2">📷 รูปภาพหลังซ่อม (After Photo) *</label>
       <input type="file" name="after_photo" accept="image/*" required
              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
       <p class="text-sm text-gray-500 mt-2">อัปโหลดรูปภาพเพื่อแสดงผลงานหลังซ่อม</p>
@@ -44,7 +44,7 @@
         ยกเลิก
       </a>
       <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-         ยืนยันทำงานเสร็จ
+        ✅ ยืนยันทำงานเสร็จ
       </button>
     </div>
   </form>

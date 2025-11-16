@@ -118,3 +118,171 @@
   min-height: calc(100vh - 56px);
   padding:28px 0;
 }
+
+
+/* ---- Timeline icons (ใหม่) ---- */
+.td-tl-dot{
+  position:absolute;
+  left:-4px;
+  top:0;
+  width:24px;
+  height:24px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 4px 10px rgba(0,0,0,.18);
+  color:#fff; /* ให้ svg ใช้ currentColor เป็นสีไอคอน */
+}
+
+/* สีพื้นตามสถานะ */
+.td-tl-dot--pending  { background:#f59e0b; }   /* เหลือง */
+.td-tl-dot--progress { background:#3b82f6; }   /* ฟ้า */
+.td-tl-dot--inspect  { background:#0ea5e9; }   /* ฟ้าสด */
+.td-tl-dot--work     { background:#2563eb; }   /* ฟ้าเข้ม */
+.td-tl-dot--done     { background:#16a34a; }   /* เขียว */
+.td-tl-dot--reject   { background:#dc2626; }   /* แดง */
+.td-tl-dot--default  { background:#6b7280; }   /* เทา */
+
+.td-tl-icon{
+  width:14px;
+  height:14px;
+  display:block;
+}
+
+/* ให้เส้น timeline เลยลงมานิดหน่อยจะได้ดูกลมกลืน */
+.td-tl-line{
+  position:absolute;
+  left:12px;
+  top:0;
+  bottom:0;
+  width:2px;
+  background:linear-gradient(to bottom, #fecaca, #e5e7eb);
+}
+
+.td-map-row{
+  margin-top:16px;
+  display:flex;
+  justify-content:flex-end;
+}
+
+/* จัด layout ให้ Timeline อยู่ซ้าย, รูปอยู่ขวา */
+.td-columns{
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+}
+
+@media (min-width:768px){
+  .td-columns{
+    flex-direction:row;
+    align-items:flex-start;
+  }
+  .td-columns > .td-card{
+    flex:1 1 0;
+    height:100%;
+  }
+}
+
+/* แถวปุ่ม Google Maps ให้ไปชิดขวา */
+.td-map-row{
+  margin-top:16px;
+  display:flex;
+  justify-content:flex-end;
+}
+
+/* Photos header */
+.td-photos-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.td-photos-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:0;
+}
+
+.td-photos-icon-wrap{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:32px;
+  height:32px;
+  border-radius:999px;
+  background:#fee2e2;          /* โทนแดงอ่อนให้เข้ากับ TU */
+  color:#b91c1c;
+  box-shadow:0 4px 10px rgba(248,113,113,.25);
+}
+
+.td-photos-icon{
+  width:18px;
+  height:18px;
+  stroke:currentColor;
+  fill:none;
+  stroke-width:1.8;
+}
+
+.td-photos-hint{
+  font-size:11px;
+  color:#9ca3af;
+}
+
+
+/* After photo preview (multi) */
+.td-after-preview{
+  margin-top:10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.td-after-thumb{
+  flex:0 0 auto;
+}
+
+.td-after-thumb-inner{
+  position:relative;
+  width:110px;
+  height:110px;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 6px 14px rgba(0,0,0,.12);
+  background:#f3f4f6;
+}
+
+.td-after-thumb-inner img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.td-after-remove{
+  position:absolute;
+  top:4px;
+  right:4px;
+  width:22px;
+  height:22px;
+  border-radius:999px;
+  border:none;
+  cursor:pointer;
+  background:rgba(0,0,0,.65);
+  color:#fff;
+  font-size:14px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  transition:background .15s ease, transform .15s ease;
+}
+
+.td-after-remove:hover{
+  background:rgba(0,0,0,.85);
+  transform:scale(1.05);
+}
