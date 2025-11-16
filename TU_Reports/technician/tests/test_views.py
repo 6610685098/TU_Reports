@@ -326,7 +326,7 @@ class TechnicianViewsTestCase(TestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'technician/job_list.html')
+        self.assertTemplateUsed(response, 'technician/tech_my_tickets.html')
         # ควรจะเห็น ticket ที่ตัวเองสร้าง
         self.assertIn(my_created_ticket, response.context['assigned_tickets'])
         # ไม่ควรเห็น ticket ที่คนอื่นสร้าง
