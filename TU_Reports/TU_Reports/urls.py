@@ -28,6 +28,7 @@ urlpatterns = [
     path('about/', include('about.urls')),  
     path('tickets/', include('tickets.urls')),
     path('dashboard/', include('dashboard.urls')),
+    path('technician/', include(('technician.urls', 'technician'), namespace='technician')),
 ]
 
 if settings.DEBUG:

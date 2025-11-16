@@ -259,18 +259,3 @@ class BeforeAfterPhoto(models.Model):
     def __str__(self) -> str:
         return f"{self.photo_type} of Ticket #{self.ticket_id}"
 
-
-class TicketFeedback(models.Model):
-    ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE, related_name="feedback")
-    rating = models.PositiveSmallIntegerField(default=5)  # 1–5
-    comment = models.TextField(blank=True)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
-    )
-    created_at = models.DateTimeField(default=timezone.now)
-
-    class Meta:
-        ordering = ["-created_at"]
-
-    def __str__(self) -> str:
-        return f"Feedback for Ticket #{self.ticket_id}: {self.rating}"

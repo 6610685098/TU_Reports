@@ -1,4 +1,4 @@
-r"""
+"""
 Mock TU REST API
 =================
 
@@ -39,7 +39,44 @@ def mock_tu_verify(username, password):
         "staff001": {"password": "staff123", "data": {"status": True, "message": "Success",
             "type": "employee", "username": "staff001", "displayname_th": "พนักงาน ทดสอบ",
             "displayname_en": "Staff Test", "email": "staff001@tu.ac.th",
-            "department": "งานซ่อมบำรุงอาคาร", "organization": "สำนักงานอาคารสถานที่"}}
+            "department": "งานซ่อมบำรุงอาคาร", "organization": "สำนักงานอาคารสถานที่"}},
+                "tech1": {"password": "tech123", "data": {
+            "status": True, "message": "Success", "type": "employee",
+            "username": "tech1", "displayname_th": "ช่าง ทดสอบ 1",
+            "displayname_en": "Technician 1", "email": "tech1@staff.tu.ac.th",
+            "department": "งานบริการเทคนิค", "organization": "สำนักงานอาคารสถานที่",
+            "role": "technician"
+        }},
+        "tech2": {"password": "tech123", "data": {
+            "status": True, "message": "Success", "type": "employee",
+            "username": "tech2", "displayname_th": "ช่าง ทดสอบ 2",
+            "displayname_en": "Technician 2", "email": "tech2@staff.tu.ac.th",
+            "department": "งานบริการเทคนิค", "organization": "สำนักงานอาคารสถานที่",
+            "role": "technician"
+        }},
+        "tech3": {"password": "tech123", "data": {
+            "status": True, "message": "Success", "type": "employee",
+            "username": "tech3", "displayname_th": "ช่าง ทดสอบ 3",
+            "displayname_en": "Technician 3", "email": "tech3@staff.tu.ac.th",
+            "department": "งานบริการเทคนิค", "organization": "สำนักงานอาคารสถานที่",
+            "role": "technician"
+        }},
+        "tech4": {"password": "tech123", "data": {
+            "status": True, "message": "Success", "type": "employee",
+            "username": "tech4", "displayname_th": "ช่าง ทดสอบ 4",
+            "displayname_en": "Technician 4", "email": "tech4@staff.tu.ac.th",
+            "department": "งานบริการเทคนิค", "organization": "สำนักงานอาคารสถานที่",
+            "role": "technician"
+        }},
+        "tech5": {"password": "tech123", "data": {
+            "status": True, "message": "Success", "type": "employee",
+            "username": "tech5", "displayname_th": "ช่าง ทดสอบ 5",
+            "displayname_en": "Technician 5", "email": "tech5@staff.tu.ac.th",
+            "department": "งานบริการเทคนิค", "organization": "สำนักงานอาคารสถานที่",
+            "role": "technician"
+        }},
+        
+    
     }
 
     username = str(username).strip()

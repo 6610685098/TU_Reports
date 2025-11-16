@@ -1,6 +1,8 @@
 from django.test import TestCase
 from django.test.utils import override_settings
 from authentication.utils import mock_tu_api
+from unittest.mock import patch, MagicMock
+import requests
 
 
 # ---------- ทดสอบฟังก์ชันหลัก mock_tu_verify ----------
@@ -83,6 +85,36 @@ class TestMockTuOtherHelpers(TestCase):
 
         res_name = mock_tu_api.mock_tu_departments(org_nam_th="อาคาร", dep_name="ซ่อม")
         self.assertTrue(res_name["status"])
+    
+    def test_mock_tu_departments_filter_org_name_en(self):
+        """filter ด้วย org_nam_en → ต้องกรองจาก org_name_en ภาษาอังกฤษให้ถูก"""
+        res = mock_tu_api.mock_tu_departments(
+            org_nam_en="Building Management Office"
+        )
+        self.assertTrue(res["status"])
+        # ทุกแถวควรมีคำว่า Building Management Office ใน org_name_en
+        self.assertTrue(
+            all(
+                "Building Management Office" in d["org_name_en"]
+                for d in res["data"]
+            )
+        )
+
+    def test_mock_tu_employee_info_filter_displayname_en(self):
+        """filter ด้วย displayname_en → ใช้ชื่อภาษาอังกฤษ"""
+        res = mock_tu_api.mock_tu_employee_info(displayname_en="Admin Test")
+        self.assertTrue(res["status"])
+        self.assertGreaterEqual(len(res["data"]), 1)
+        self.assertTrue(
+            all("Admin Test" in e["displayname_en"] for e in res["data"])
+        )
+
+    def test_mock_tu_employee_info_no_match_returns_false(self):
+        """กรณี filter แล้วไม่เจอเลย → status=False, data=[], message='No data found'"""
+        res = mock_tu_api.mock_tu_employee_info(username="no_such_user_xyz")
+        self.assertFalse(res["status"])
+        self.assertEqual(res["data"], [])
+        self.assertEqual(res["message"], "No data found")
 
     def test_mock_tu_employee_info_filters(self):
         """ทดสอบ mock_tu_employee_info() — filter username, displayname, org"""
@@ -97,3 +129,100 @@ class TestMockTuOtherHelpers(TestCase):
 
         by_org = mock_tu_api.mock_tu_employee_info(organization="สำนักงานอาคารสถานที่")
         self.assertTrue(all("สำนักงานอาคารสถานที่" in p["organization"] for p in by_org["data"]))
+
+class TestMockTuAPIFullBranches(TestCase):
+
+    def _set_api(self):
+        return override_settings(
+            TU_API_BASE_URL="https://restapi.tu.ac.th",
+            TU_APPLICATION_KEY="TESTKEY"
+        )
+
+    @patch("requests.post")
+    def test_real_api_400_returns_error(self, mock_post):
+        """กรณี API ตอบ 400 → mock_tu_verify ต้องคืน status=False"""
+        mock_response = MagicMock()
+        mock_response.status_code = 400
+        mock_response.text = "Invalid request"
+        mock_post.return_value = mock_response
+
+        with self._set_api():
+            res = mock_tu_api.mock_tu_verify("nouser", "nopass")
+
+        self.assertFalse(res["status"])
+        self.assertIn("Real API returned 400", res["message"])
+
+    @patch("requests.post")
+    def test_real_api_500_fallback_to_verify2(self, mock_post):
+        """API verify แรก 500 → ต้อง fallback verify2"""
+        first = MagicMock()
+        first.status_code = 500
+        first.text = "Server error"
+
+        second = MagicMock()
+        second.status_code = 200
+        second.json.return_value = {"status": True, "message": "fallback ok"}
+
+        mock_post.side_effect = [first, second]
+
+        with self._set_api():
+            res = mock_tu_api.mock_tu_verify("realuser", "pass")
+
+        self.assertTrue(res["status"])
+        self.assertEqual(res["message"], "fallback ok")
+        self.assertEqual(mock_post.call_count, 2)
+
+    @patch("requests.post")
+    def test_real_api_json_decode_error(self, mock_post):
+        """API 200 แต่ JSON เสีย → ปัจจุบันโค้ดจริงปล่อย ValueError ออกมา"""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.side_effect = ValueError("bad json")
+        mock_response.text = "not a json"
+        mock_post.return_value = mock_response
+
+        # โค้ดจริงไม่ได้จับ ValueError → เราคาดหวังให้มัน raise
+        with self._set_api(), self.assertRaises(ValueError):
+            mock_tu_api.mock_tu_verify("realbad", "pass")
+
+
+    @patch("requests.post")
+    def test_real_api_request_exception(self, mock_post):
+        """requests.post โยน exception"""
+        mock_post.side_effect = requests.exceptions.RequestException("boom")
+
+        with self._set_api():
+            res = mock_tu_api.mock_tu_verify("exception", "pass")
+
+        self.assertFalse(res["status"])
+        self.assertIn("API call failed", res["message"])
+
+    @patch("requests.post")
+    def test_api_base_url_missing_slash(self, mock_post):
+        """base URL ผิดรูปแบบ → ต้องจับ error"""
+        with override_settings(
+            TU_API_BASE_URL="https://restapi.tu.ac.th///",
+            TU_APPLICATION_KEY="KKK"
+        ):
+            mock_post.side_effect = requests.RequestException("URL Error")
+
+            res = mock_tu_api.mock_tu_verify("user", "pass")
+
+        self.assertFalse(res["status"])
+        self.assertIn("API call failed", res["message"])
+
+    def test_real_api_empty_username_password_returns_missing_app_key(self):
+        """
+        username=None/password=None และไม่มี APP_KEY
+        → ต้องไม่เรียก TU API จริง และคืน status=False พร้อมข้อความ Missing TU_APPLICATION_KEY
+        """
+        with override_settings(
+            TU_API_BASE_URL="https://restapi.tu.ac.th",
+            TU_APPLICATION_KEY=""  # ไม่มี key เลย
+        ):
+            res = mock_tu_api.mock_tu_verify(None, None)
+
+        self.assertFalse(res["status"])
+        self.assertIn("Missing TU_APPLICATION_KEY", res["message"])
+
+   

@@ -34,4 +34,3 @@ class FormUnitTests(TestCase):
         
         self.assertIn('title', form.errors)
         self.assertEqual(form.errors['title'], ['This field is required.'])
-

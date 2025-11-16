@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from .models import User, LoginLog
+from django.contrib.auth.decorators import login_required
 
 def get_client_ip(request):
     """Get client IP address"""
@@ -54,7 +55,15 @@ def login_view(request):
                 elif result.get('type') == 'employee':
                     user.organization = result.get('organization', '')
                     user.department = result.get('department', '')
-
+                
+                #  ตั้ง role ให้เป็น technician สำหรับ tech1–tech5
+                    
+                if result.get('role'):
+                    user.role = result['role']
+                elif username.lower().startswith('tech'):
+                    user.role = 'technician'
+                    
+                user.auth_provider = 'TU_API'
                 user.save()
 
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')

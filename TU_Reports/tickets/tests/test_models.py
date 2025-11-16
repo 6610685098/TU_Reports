@@ -44,3 +44,5 @@ class ModelUnitTests(TestCase):
         print("Running: test_ticket_str_method")
         expected_str = f"#{self.ticket.pk} - Test Ticket for Str"
         self.assertEqual(str(self.ticket), expected_str)
+
+    
