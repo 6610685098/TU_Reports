@@ -68,16 +68,10 @@ def create_ticket(request):
                 note='สร้าง Ticket ใหม่',
             )
             result = auto_dispatch_ticket(ticket)
-            if getattr(result, "technician", None):
-                messages.success(request, f"มอบหมายให้ {getattr(result.technician, 'get_display_name', lambda: result.technician.username)()}")
-                messages.info(request, result.reason)
-            else:
-                messages.warning(request, f"ยังไม่สามารถมอบหมายช่าง: {result.reason}")
 
             return redirect('tickets:ticket_detail', ticket_id=ticket.id)
     else:
             form = TicketForm()
-            # มาใส่มอบหมายงานช่างที่หลัง
 
     return render(request, 'user/create_ticket.html', {'form': form})
 
@@ -180,7 +174,6 @@ def ticket_detail(request, ticket_id):
                 image=optimized,
                 uploaded_by=request.user,
             )
-            messages.success(request, 'อัปโหลดรูป AFTER สำเร็จ')
 
         if action == 'update_status':
             new_status = request.POST.get('new_status')
@@ -196,31 +189,23 @@ def ticket_detail(request, ticket_id):
                     changed_by=request.user,
                     note=comment if comment else f'เปลี่ยนสถานะเป็น {ticket.get_status_display()}',
                 )
-                messages.success(request, f'อัปเดตสถานะเป็น "{ticket.get_status_display()}" สำเร็จ')
-            else:
-                if not new_status:
-                    messages.warning(request, 'กรุณาเลือกสถานะใหม่')
-                else:
-                    messages.info(request, 'สถานะไม่เปลี่ยนแปลง')
 
         elif action == 'submit_work':
             # ต้องมี AFTER อย่างน้อย 1 รูป
             after_photo_exists = ticket.before_after_photos.filter(photo_type='AFTER').exists()
-            if not after_photo_exists:
-                messages.error(request, 'ต้องอัปโหลดรูป AFTER ก่อนส่งงาน')
-            else:
-                ticket.status = 'COMPLETED'
-                ticket.completed_at = timezone.now()
-                ticket.save()
 
-                comment = request.POST.get('comment', '').strip()
-                TicketStatusHistory.objects.create(
-                    ticket=ticket,
-                    status='COMPLETED',
-                    changed_by=request.user,
-                    note=comment if comment else 'ส่งงานเสร็จสิ้น',
-                )
-                messages.success(request, 'ส่งงานสำเร็จ! สถานะเปลี่ยนเป็น "เสร็จสิ้น"')
+            ticket.status = 'COMPLETED'
+            ticket.completed_at = timezone.now()
+            ticket.save()
+
+            comment = request.POST.get('comment', '').strip()
+            TicketStatusHistory.objects.create(
+                ticket=ticket,
+                status='COMPLETED',
+                changed_by=request.user,
+                note=comment if comment else 'ส่งงานเสร็จสิ้น',
+            )
+                
 
         return redirect('tickets:ticket_detail', ticket_id=ticket.id)
 
@@ -265,7 +250,6 @@ def edit_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id, created_by=request.user)
 
     if ticket.status != 'PENDING':
-        messages.error(request, 'สามารถแก้ไขได้เฉพาะ Ticket ที่มีสถานะ "รอดำเนินการ" เท่านั้น')
         return redirect('tickets:ticket_detail', ticket_id=ticket_id)
 
     if request.method == 'POST':
@@ -278,7 +262,6 @@ def edit_ticket(request, ticket_id):
                 changed_by=request.user,
                 note=f'แก้ไขข้อมูล Ticket โดย {request.user.get_display_name()}',
             )
-            messages.success(request, 'แก้ไข Ticket สำเร็จ')
             return redirect('tickets:ticket_detail', ticket_id=ticket_id)
     else:
         form = TicketForm(instance=ticket)
@@ -296,7 +279,6 @@ def cancel_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id, created_by=request.user)
 
     if ticket.status not in ['PENDING', 'IN_PROGRESS', 'INSPECTING', 'WORKING']:
-        messages.error(request, 'ไม่สามารถยกเลิก Ticket ที่มีสถานะนี้ได้')
         return redirect('tickets:ticket_detail', ticket_id=ticket_id)
 
     if request.method == 'POST':
@@ -312,10 +294,6 @@ def cancel_ticket(request, ticket_id):
             changed_by=request.user,
             note=ticket.reject_reason,
         )
-
-        messages.success(request, f'ยกเลิก Ticket #{ticket.id} สำเร็จ')
-        if assigned_tech:
-            messages.info(request, f'ได้ทำการแจ้งช่าง {assigned_tech.get_display_name()} แล้ว')
 
         return redirect('tickets:my_tickets')
 
@@ -334,9 +312,4 @@ def _can_dispatch(user):
 def dispatch_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, pk=ticket_id)
     result = auto_dispatch_ticket(ticket)
-    if getattr(result, "technician", None):
-        messages.success(request, f"มอบหมายให้ {getattr(result.technician, 'get_display_name', lambda: result.technician.username)()}")
-        messages.info(request, result.reason)
-    else:
-        messages.warning(request, f"ยังไม่สามารถมอบหมายช่าง: {result.reason}")
     return redirect('tickets:ticket_detail', ticket_id=ticket.id)
