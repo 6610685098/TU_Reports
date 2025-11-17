@@ -11,5 +11,9 @@ python manage.py collectstatic --noinput
 
 # 3. รัน Database Migrations
 python manage.py migrate
-# 4. สร้าง Superuser 
+
+# 4. โหลดข้อมูลตัวอย่าง
+python manage.py bootstrap_demo_data
+
+# 5. สร้าง Superuser 
 python manage.py createsuperuser --username admin --email "cn331@email.com" --noinput || true
