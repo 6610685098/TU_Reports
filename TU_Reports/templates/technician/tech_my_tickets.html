@@ -4,7 +4,7 @@
 {% block title %}งานของฉัน (ช่าง) - TU Report{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/job_list.css' %}">
+<link rel="stylesheet" href="{% static 'css/my_tickets.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -12,23 +12,14 @@
   <div class="wrap">
     <div class="soft-card hero mb-6">
       <div class="hero-left">
-        <h1 class="hero-title">งานที่ได้รับมอบหมาย (ช่าง)</h1>
-        <p class="hero-sub">ดูรายการงานที่ได้รับมอบหมาย พร้อมสถานะและความเร่งด่วน</p>
+        <h1 class="hero-title">งานของฉัน</h1>
+        <p class="hero-sub">ติดตามงานที่คุณสร้างทั้งหมด พร้อมตัวกรองและการค้นหา</p>
       </div>
-
-      <form method="post" action="{% url 'technician:update_availability' %}" class="inline">
-        {% csrf_token %}
-        <button type="submit"
-                class="pill-btn {% if is_available %}pill-btn--green{% else %}pill-btn--gray{% endif %}">
-          {% if is_available %}
-             พร้อมรับงาน
-          {% else %}
-             หยุดรับงาน
-          {% endif %}
-        </button>
-      </form>
+      <a href="{% url 'tickets:create_ticket' %}" class="pill-btn pill-btn--red">
+        + แจ้งปัญหาใหม่
+      </a>
     </div>
-    <div class="grid grid-2 mb-6">
+    <div class="grid grid-3 mb-6">
       <div class="soft-card stat stat--amber">
         <div>
           <p class="stat-label">รอดำเนินการ</p>
@@ -39,6 +30,13 @@
         <div>
           <p class="stat-label">กำลังดำเนินการ</p>
           <p class="stat-value">{{ in_progress_count }}</p>
+          <i class="stat-icon fas fa-spinner fa-pulse"></i>
+        </div>
+      </div>
+      <div class="soft-card stat stat--green">
+        <div>
+          <p class="stat-label">เสร็จสิ้น</p>
+          <p class="stat-value">{{ completed_count }}</p>
         </div>
       </div>
     </div>

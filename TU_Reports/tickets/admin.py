@@ -3,7 +3,7 @@ from django.contrib import admin
 from .models import (
     Category, Department, Ticket, TechnicianPresence,
     AssignmentRule, TicketStatusHistory, Attachment,
-    BeforeAfterPhoto, TicketFeedback
+    BeforeAfterPhoto, 
 )
 
 # ---------- Category / Department ----------
@@ -87,10 +87,3 @@ class BeforeAfterPhotoAdmin(admin.ModelAdmin):
     search_fields = ("ticket__id", "ticket__title", "uploaded_by__username")
     date_hierarchy = "created_at"
 
-# ---------- Feedback ----------
-@admin.register(TicketFeedback)
-class TicketFeedbackAdmin(admin.ModelAdmin):
-    list_display = ("ticket", "rating", "created_by", "created_at")
-    list_filter = ("rating", "created_at")
-    search_fields = ("ticket__id", "ticket__title", "created_by__username")
-    date_hierarchy = "created_at"
