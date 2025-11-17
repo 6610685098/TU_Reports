@@ -57,10 +57,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'about',
     'dashboard',
-    #'tickets',
+    'tickets',
     'authentication',
     'technician',
-    "tickets.apps.TicketsConfig",
+    # "tickets.apps.TicketsConfig",
 ]
 
 MIDDLEWARE = [
