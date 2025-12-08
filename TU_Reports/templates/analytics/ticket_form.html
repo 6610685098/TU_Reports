@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}แก้ไข Ticket - TU Report{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-8 px-4">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">แก้ไข Ticket #{{ ticket.id }}</h1>
+    </div>
+
+    <form method="POST" class="bg-white shadow rounded-lg p-6 space-y-6">
+        {% csrf_token %}
+
+        <!-- Title -->
+        <div>
+            <label for="title" class="block text-sm font-medium text-gray-700">หัวข้อปัญหา</label>
+            <input type="text" name="title" id="title" value="{{ ticket.title }}" required
+                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+
+        <!-- Description -->
+        <div>
+            <label for="description" class="block text-sm font-medium text-gray-700">รายละเอียด</label>
+            <textarea name="description" id="description" rows="4"
+                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">{{ ticket.description }}</textarea>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Category -->
+            <div>
+                <label for="category" class="block text-sm font-medium text-gray-700">หมวดหมู่</label>
+                <select name="category" id="category"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <option value="">-- ไม่ระบุ --</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if ticket.category_id == cat.id %}selected{% endif %}>{{ cat.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Urgency -->
+            <div>
+                <label for="urgency_level" class="block text-sm font-medium text-gray-700">ความเร่งด่วน</label>
+                <select name="urgency_level" id="urgency_level"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    {% for code, label in ticket.URGENCY_CHOICES %}
+                    <option value="{{ code }}" {% if ticket.urgency_level == code %}selected{% endif %}>{{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700">สถานะ</label>
+                <select name="status" id="status"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    {% for code, label in ticket.STATUS_CHOICES %}
+                    <option value="{{ code }}" {% if ticket.status == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Assigned To -->
+            <div>
+                <label for="assigned_to" class="block text-sm font-medium text-gray-700">มอบหมายให้ช่าง</label>
+                <select name="assigned_to" id="assigned_to"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <option value="">-- ยังไม่มอบหมาย --</option>
+                    {% for tech in technicians %}
+                    <option value="{{ tech.id }}" {% if ticket.assigned_to_id == tech.id %}selected{% endif %}>{{
+                        tech.get_display_name }} ({{ tech.username }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-6">
+            <a href="{% url 'analytics:dashboard' %}"
+                class="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                ยกเลิก
+            </a>
+            <button type="submit"
+                class="px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                บันทึกการแก้ไข
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
