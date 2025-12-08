@@ -49,6 +49,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -61,6 +62,9 @@ INSTALLED_APPS = [
     'authentication',
     'technician',
     "tickets.apps.TicketsConfig",
+    'notify',
+    'analytics',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -86,12 +90,20 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'notify.context_processors.unread_notifications',
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = 'TU_Reports.wsgi.application'
+ASGI_APPLICATION = 'TU_Reports.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 
 # Database
