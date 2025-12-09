@@ -8,9 +8,10 @@ from .models import Notification
 @login_required
 def notification_list(request):
     """Notification Center - รายการแจ้งเตือนทั้งหมด"""
-    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')[:50]
+    # 1. ดึง QuerySet มาก่อน (ยังไม่ต้องใส่ [:50])
+    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
 
-    # Filter by type if specified
+    # 2. ทำการ Filter ตามเงื่อนไขต่างๆ ให้เสร็จก่อน
     filter_type = request.GET.get('type')
     if filter_type:
         notifications = notifications.filter(notification_type=filter_type)
@@ -22,6 +23,10 @@ def notification_list(request):
     elif filter_read == 'read':
         notifications = notifications.filter(is_read=True)
 
+    # 3. **** ตัดมาแค่ 50 ตัวล่าสุด (ทำเป็นขั้นตอนสุดท้าย) ****
+    notifications = notifications[:50] 
+
+    # นับจำนวน (อันนี้แยก QuerySet ไม่เกี่ยวกัน ทำงานได้ปกติ)
     unread_count = Notification.objects.filter(recipient=request.user, is_read=False).count()
 
     context = {
