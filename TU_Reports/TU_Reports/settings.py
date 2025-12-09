@@ -11,23 +11,55 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-import os
-import dj_database_url
 from decimal import Decimal
 
 # settings.py
 TECH_DEFAULT_AVAILABLE = True
-TECH_DEFAULT_LAT = '14.0730'
-TECH_DEFAULT_LON = '100.6060'
+TECH_DEFAULT_LAT = "14.0730"
+TECH_DEFAULT_LON = "100.6060"
 
 DEFAULT_TECHNICIANS = [
-    {"username": "tech1", "password": "tech1234", "displayname_th": "ช่าง 1", "department": "งานบริการเทคนิค", "latitude": "14.0745", "longitude": "100.6060"},
-    {"username": "tech2", "password": "tech1234", "displayname_th": "ช่าง 2", "department": "งานบริการเทคนิค", "latitude": "14.0720", "longitude": "100.6090"},
-    {"username": "tech3", "password": "tech1234", "displayname_th": "ช่าง 3", "department": "งานบริการเทคนิค", "latitude": "14.0755", "longitude": "100.6035"},
-    {"username": "tech4", "password": "tech1234", "displayname_th": "ช่าง 4", "department": "งานบริการเทคนิค", "latitude": "14.0705", "longitude": "100.6075"},
-    {"username": "tech5", "password": "tech1234", "displayname_th": "ช่าง 5", "department": "งานบริการเทคนิค", "latitude": "14.0730", "longitude": "100.6040"},
+    {
+        "username": "tech1",
+        "password": "tech1234",
+        "displayname_th": "ช่าง 1",
+        "department": "งานบริการเทคนิค",
+        "latitude": "14.0745",
+        "longitude": "100.6060",
+    },
+    {
+        "username": "tech2",
+        "password": "tech1234",
+        "displayname_th": "ช่าง 2",
+        "department": "งานบริการเทคนิค",
+        "latitude": "14.0720",
+        "longitude": "100.6090",
+    },
+    {
+        "username": "tech3",
+        "password": "tech1234",
+        "displayname_th": "ช่าง 3",
+        "department": "งานบริการเทคนิค",
+        "latitude": "14.0755",
+        "longitude": "100.6035",
+    },
+    {
+        "username": "tech4",
+        "password": "tech1234",
+        "displayname_th": "ช่าง 4",
+        "department": "งานบริการเทคนิค",
+        "latitude": "14.0705",
+        "longitude": "100.6075",
+    },
+    {
+        "username": "tech5",
+        "password": "tech1234",
+        "displayname_th": "ช่าง 5",
+        "department": "งานบริการเทคนิค",
+        "latitude": "14.0730",
+        "longitude": "100.6040",
+    },
 ]
-
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -38,70 +70,69 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-a)069yb3z*e#g840^*-+q8v(_^w-wjr6)_8v*s12xpgpx258zx'
+SECRET_KEY = "django-insecure-a)069yb3z*e#g840^*-+q8v(_^w-wjr6)_8v*s12xpgpx258zx"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'default-key')
-ALLOWED_HOSTS = ['*']
+DEBUG = True
+
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'daphne',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'about',
-    'dashboard',
+    "daphne",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "about",
+    "dashboard",
     #'tickets',
-    'authentication',
-    'technician',
+    "authentication",
+    "technician",
     "tickets.apps.TicketsConfig",
-    'notify',
-    'analytics',
-    'channels',
+    "notify",
+    "analytics",
+    "channels",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'TU_Reports.urls'
+ROOT_URLCONF = "TU_Reports.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'notify.context_processors.unread_notifications',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "notify.context_processors.unread_notifications",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'TU_Reports.wsgi.application'
-ASGI_APPLICATION = 'TU_Reports.asgi.application'
+WSGI_APPLICATION = "TU_Reports.wsgi.application"
+ASGI_APPLICATION = "TU_Reports.asgi.application"
 
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
 
@@ -109,37 +140,31 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-if not os.environ.get('DEBUG', 'False') == 'True':
-    DATABASES ={
-    'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-
+}
 
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
-AUTH_USER_MODEL = 'authentication.User'
+AUTH_USER_MODEL = "authentication.User"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -147,9 +172,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'Asia/Bangkok'
+TIME_ZONE = "Asia/Bangkok"
 
 USE_I18N = True
 
@@ -159,21 +184,20 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE ='whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/dashboard/"
@@ -182,17 +206,3 @@ LOGOUT_REDIRECT_URL = "/login/"
 TU_API_ENABLED = True
 TU_API_BASE_URL = "https://restapi.tu.ac.th"
 TU_APPLICATION_KEY = "TUefa2f6a38c1ec79dcfb23bb2074747dc91381e33471794e37e3dcf69712bcc024fed72ce50df9f0ff5e8cb1e0e136f8f"
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'WARNING', 
-    },
-}
