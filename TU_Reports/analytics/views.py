@@ -88,8 +88,6 @@ def admin_dashboard(request):
         tickets_query = tickets_query.order_by('-created_at')
 
     recent_tickets = tickets_query # No limit!
-
-    recent_logs = LoginLog.objects.order_by('-created_at')[:10]
     
     categories = Category.objects.all() # For filter dropdown
 
@@ -101,7 +99,6 @@ def admin_dashboard(request):
         'total_users': total_users,
         'total_technicians': total_technicians,
         'recent_tickets': recent_tickets,
-        'recent_logs': recent_logs,
         'categories': categories, # Pass categories to template
         # Chart Data
         'chart_status_labels': chart_status_labels,
@@ -181,7 +178,13 @@ def export_tickets_csv(request):
 @user_passes_test(is_admin)
 def user_list(request):
     users = User.objects.all().order_by('-date_joined')
-    return render(request, 'analytics/user_list.html', {'users': users})
+    recent_logs = LoginLog.objects.order_by('-created_at')[:10]
+
+    context = {
+        'users': users,
+        'recent_logs': recent_logs,
+    }
+    return render(request, 'analytics/user_list.html', context)
 
 @login_required
 @user_passes_test(is_admin)

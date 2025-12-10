@@ -3,72 +3,164 @@
 
 {% block title %}จัดการผู้ใช้งาน - TU Report{% endblock %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="max-w-7xl mx-auto py-8 px-4">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-gray-800">จัดการผู้ใช้งาน (User Management)</h1>
-        <a href="{% url 'analytics:dashboard' %}"
-            class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition">
-            กลับ Dashboard
-        </a>
+<div class="admin-users-page">
+  <!-- Header -->
+  <div class="admin-users-header">
+    <div>
+      <h1 class="admin-users-title">
+        <i class="fa-solid fa-users-cog"></i>
+        จัดการผู้ใช้งาน
+      </h1>
+      <p class="admin-users-subtitle">
+        ดูรายการผู้ใช้งานทั้งหมด พร้อมสถานะและสิทธิ์การใช้งาน
+      </p>
     </div>
 
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Username</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            ชื่อ-สกุล</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">แผนก
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            จัดการ</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for u in users %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {{ u.username }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ u.displayname_th|default:u.displayname_en }}
-                            <div class="text-xs text-gray-400">{{ u.email }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            {% if u.role == 'admin' %}bg-purple-100 text-purple-800
-                            {% elif u.role == 'technician' %}bg-blue-100 text-blue-800
-                            {% else %}bg-green-100 text-green-800{% endif %}">
-                                {{ u.role|upper }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ u.department|default:"-" }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {% if u.is_active %}
-                            <span class="text-green-600 font-bold">Active</span>
-                            {% else %}
-                            <span class="text-red-600">Inactive</span>
-                            {% endif %}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <a href="{% url 'analytics:user_edit' u.id %}"
-                                class="text-indigo-600 hover:text-indigo-900">แก้ไข</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <a href="{% url 'analytics:dashboard' %}"
+       class="pill-btn pill-btn--ghost admin-users-back-btn">
+      <i class="fa-solid fa-arrow-left-long"></i>
+      <span>กลับ Dashboard</span>
+    </a>
+  </div>
+
+  <!-- Card + Table -->
+  <div class="admin-users-card">
+    <div class="admin-users-table-wrapper">
+      <table class="min-w-full admin-users-table">
+        <thead>
+          <tr>
+            <th class="admin-users-th">Username</th>
+            <th class="admin-users-th">ชื่อ-สกุล</th>
+            <th class="admin-users-th">Role</th>
+            <th class="admin-users-th">แผนก</th>
+            <th class="admin-users-th">สถานะ</th>
+            <th class="admin-users-th text-right pr-8">จัดการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr class="admin-users-tr">
+            <!-- Username -->
+            <td class="admin-users-td">
+              <span class="admin-users-username">{{ u.username }}</span>
+              {% if u.last_login %}
+              <span class="admin-users-meta">
+                ล่าสุด {{ u.last_login|date:"d/m/Y H:i" }}
+              </span>
+              {% endif %}
+            </td>
+
+            <!-- Name + email -->
+            <td class="admin-users-td">
+              <div class="admin-users-name">
+                {{ u.displayname_th|default:u.displayname_en }}
+              </div>
+              <div class="admin-users-email">
+                {{ u.email|default:"-" }}
+              </div>
+            </td>
+
+            <!-- Role -->
+            <td class="admin-users-td">
+              <span class="
+                role-pill
+                {% if u.role == 'admin' %}role-pill--admin
+                {% elif u.role == 'technician' %}role-pill--tech
+                {% else %}role-pill--user{% endif %}
+              ">
+                <i class="fa-solid
+                  {% if u.role == 'admin' %}fa-crown
+                  {% elif u.role == 'technician' %}fa-screwdriver-wrench
+                  {% else %}fa-user{% endif %}
+                "></i>
+                {{ u.get_role_display|default:u.role|upper }}
+              </span>
+            </td>
+
+            <!-- Department -->
+            <td class="admin-users-td">
+              {{ u.department|default:"-" }}
+            </td>
+
+            <!-- Active status -->
+            <td class="admin-users-td">
+              {% if u.is_active %}
+                <span class="status-label status-label--active">
+                  <i class="fa-solid fa-circle-check"></i> Active
+                </span>
+              {% else %}
+                <span class="status-label status-label--inactive">
+                  <i class="fa-solid fa-circle-xmark"></i> Inactive
+                </span>
+              {% endif %}
+            </td>
+
+            <!-- Actions -->
+            <td class="admin-users-td admin-users-td-actions">
+              <a href="{% url 'analytics:user_edit' u.id %}"
+                 class="pill-btn pill-btn--sm pill-btn--blue admin-users-edit-btn">
+                <i class="fa-regular fa-pen-to-square"></i>
+                <span>แก้ไข</span>
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="admin-users-empty">
+              ยังไม่มีข้อมูลผู้ใช้งาน
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+  </div>
+
+  {% if recent_logs %}
+  <div class="admin-section-card bg-white rounded-lg shadow mt-8">
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
+      <i class="fa-regular fa-user admin-table-title-icon"></i>
+      <h2 class="admin-section-title m-0">Login Logs ล่าสุด</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="admin-th px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
+            <th class="admin-th px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">รายละเอียด</th>
+            <th class="admin-th px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
+            <th class="admin-th px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
+            <th class="admin-th px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">IP Address</th>
+            <th class="admin-th px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">เวลา</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for log in recent_logs %}
+          <tr class="admin-tr hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ log.username }}</td>
+            <td class="px-6 py-4 text-sm text-gray-500">{{ log.description|truncatewords:8 }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {% if log.status == 'SUCCESS' %}
+                <span class="status-pill status-pill--green">Success</span>
+              {% else %}
+                <span class="status-pill status-pill--red">Failed</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.login_method }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.ip_address|default:"-" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.created_at|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}

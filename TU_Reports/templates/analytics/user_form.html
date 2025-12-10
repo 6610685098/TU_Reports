@@ -3,98 +3,139 @@
 
 {% block title %}แก้ไขข้อมูลผู้ใช้ - TU Report{% endblock %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="max-w-4xl mx-auto py-8 px-4">
-    <div class="mb-6 flex items-center justify-between">
-        <h1 class="text-3xl font-bold text-gray-800">แก้ไขข้อมูลผู้ใช้</h1>
-        <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">{{ target_user.username
-            }}</span>
+<div class="admin-user-edit-page">
+  <!-- Header -->
+  <div class="admin-user-edit-header">
+    <div>
+      <h1 class="admin-user-edit-title">
+        <i class="fa-solid fa-user-pen"></i>
+        แก้ไขข้อมูลผู้ใช้
+      </h1>
+      <p class="admin-user-edit-subtitle">
+        ปรับปรุงข้อมูลส่วนตัว บทบาท และสถานะการใช้งานของผู้ใช้ในระบบ
+      </p>
+    </div>
+    <span class="admin-user-edit-chip">
+      {{ target_user.username }}
+    </span>
+  </div>
+
+  <!-- Card Form -->
+  <form method="POST" class="admin-user-edit-card">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 admin-user-edit-grid">
+      <!-- Username (Readonly) -->
+      <div>
+        <label class="admin-input-label">Username</label>
+        <input type="text"
+               value="{{ target_user.username }}"
+               readonly
+               class="admin-input admin-input--readonly">
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label for="email" class="admin-input-label">อีเมล</label>
+        <input type="email"
+               name="email"
+               id="email"
+               value="{{ target_user.email }}"
+               class="admin-input">
+      </div>
+
+      <!-- Display Name TH -->
+      <div>
+        <label for="displayname_th" class="admin-input-label">ชื่อ-สกุล (ไทย)</label>
+        <input type="text"
+               name="displayname_th"
+               id="displayname_th"
+               value="{{ target_user.displayname_th }}"
+               class="admin-input">
+      </div>
+
+      <!-- Display Name EN -->
+      <div>
+        <label for="displayname_en" class="admin-input-label">ชื่อ-สกุล (อังกฤษ)</label>
+        <input type="text"
+               name="displayname_en"
+               id="displayname_en"
+               value="{{ target_user.displayname_en }}"
+               class="admin-input">
+      </div>
+
+      <!-- Role -->
+      <div>
+        <label for="role" class="admin-input-label">บทบาท (Role)</label>
+        <select name="role"
+                id="role"
+                class="admin-input admin-select">
+          <option value="user" {% if target_user.role == 'user' %}selected{% endif %}>
+            User (ทั่วไป)
+          </option>
+          <option value="technician" {% if target_user.role == 'technician' %}selected{% endif %}>
+            Technician (ช่าง)
+          </option>
+          <option value="admin" {% if target_user.role == 'admin' %}selected{% endif %}>
+            Admin (ผู้ดูแล)
+          </option>
+        </select>
+      </div>
+
+      <!-- Department -->
+      <div>
+        <label for="department" class="admin-input-label">แผนก/หน่วยงาน</label>
+        <input type="text"
+               name="department"
+               id="department"
+               value="{{ target_user.department|default_if_none:'' }}"
+               class="admin-input">
+      </div>
+
+      <!-- Organization -->
+      <div class="md:col-span-2">
+        <label for="organization" class="admin-input-label">องค์กร/สังกัด</label>
+        <input type="text"
+               name="organization"
+               id="organization"
+               value="{{ target_user.organization|default_if_none:'' }}"
+               class="admin-input">
+      </div>
+
+      <!-- Active Status -->
+      <div class="md:col-span-2">
+        <div class="admin-user-edit-active-card">
+          <input type="checkbox"
+                 name="is_active"
+                 id="is_active"
+                 {% if target_user.is_active %}checked{% endif %}
+                 class="admin-checkbox">
+          <label for="is_active" class="admin-user-edit-active-label">
+            Active (เปิดใช้งาน)
+            <span>หากปิดใช้งาน ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้</span>
+          </label>
+        </div>
+      </div>
     </div>
 
-    <form method="POST" class="bg-white shadow-lg rounded-xl p-8 space-y-6">
-        {% csrf_token %}
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Username (Readonly) -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                <input type="text" value="{{ target_user.username }}" readonly
-                    class="block w-full border-gray-300 bg-gray-50 text-gray-500 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm cursor-not-allowed">
-            </div>
-
-            <!-- Email -->
-            <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
-                <input type="email" name="email" id="email" value="{{ target_user.email }}"
-                    class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out">
-            </div>
-
-            <!-- Display Name TH -->
-            <div>
-                <label for="displayname_th" class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-สกุล (ไทย)</label>
-                <input type="text" name="displayname_th" id="displayname_th" value="{{ target_user.displayname_th }}"
-                    class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out">
-            </div>
-
-            <!-- Display Name EN -->
-            <div>
-                <label for="displayname_en" class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-สกุล
-                    (อังกฤษ)</label>
-                <input type="text" name="displayname_en" id="displayname_en" value="{{ target_user.displayname_en }}"
-                    class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out">
-            </div>
-
-            <!-- Role -->
-            <div>
-                <label for="role" class="block text-sm font-medium text-gray-700 mb-1">บทบาท (Role)</label>
-                <select name="role" id="role"
-                    class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out">
-                    <option value="user" {% if target_user.role == 'user' %}selected{% endif %}>User (ทั่วไป)</option>
-                    <option value="technician" {% if target_user.role == 'technician' %}selected{% endif %}>Technician(ช่าง)</option>
-                    <option value="admin" {% if target_user.role == 'admin' %}selected{% endif %}>Admin (ผู้ดูแล)</option>
-                </select>
-            </div>
-
-            <!-- Department -->
-            <div>
-                <label for="department" class="block text-sm font-medium text-gray-700 mb-1">แผนก/หน่วยงาน</label>
-                <input type="text" name="department" id="department"
-                    value="{{ target_user.department|default_if_none:'' }}"
-                    class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out">
-            </div>
-
-            <!-- Organization -->
-            <div class="md:col-span-2">
-                <label for="organization" class="block text-sm font-medium text-gray-700 mb-1">องค์กร/สังกัด</label>
-                <input type="text" name="organization" id="organization"
-                    value="{{ target_user.organization|default_if_none:'' }}"
-                    class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out">
-            </div>
-
-            <!-- Active Status -->
-            <div class="md:col-span-2">
-                <div class="flex items-center p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <input type="checkbox" name="is_active" id="is_active" {% if target_user.is_active %}checked{% endif %}
-                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition duration-150 ease-in-out">
-                    <label for="is_active" class="ml-3 block text-sm font-medium text-gray-900">
-                        Active (เปิดใช้งาน)
-                        <span class="block text-xs text-gray-500 font-normal">หากปิดใช้งาน
-                            ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้</span>
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-100">
-            <a href="{% url 'analytics:user_list' %}"
-                class="px-5 py-2.5 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
-                ยกเลิก
-            </a>
-            <button type="submit"
-                class="px-5 py-2.5 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
-                บันทึกการแก้ไข
-            </button>
-        </div>
-    </form>
+    <!-- Actions -->
+    <div class="admin-user-edit-actions">
+      <a href="{% url 'analytics:user_list' %}"
+         class="pill-btn pill-btn--ghost">
+        <i class="fa-solid fa-arrow-left-long"></i>
+        <span>ยกเลิก</span>
+      </a>
+      <button type="submit"
+              class="pill-btn pill-btn--blue">
+        <i class="fa-regular fa-floppy-disk"></i>
+        <span>บันทึกการแก้ไข</span>
+      </button>
+    </div>
+  </form>
 </div>
 {% endblock %}
