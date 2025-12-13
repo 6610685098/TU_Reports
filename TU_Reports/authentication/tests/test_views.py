@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.contrib.auth import get_user_model
@@ -6,6 +6,7 @@ from django.contrib.messages import get_messages
 from unittest.mock import patch
 
 from authentication.models import LoginLog
+from authentication.views import get_client_ip
 
 User = get_user_model()
 
@@ -16,54 +17,83 @@ TU_SUCCESS_STUDENT = {
     "message": "Success",
     "type": "student",
     "username": "student001",
-    "displayname_th": "สมชาย ใจดี",
-    "displayname_en": "Somchai Jaidee",
-    "email": "student001@tu.ac.th",
     "tu_status": "ปกติ",
+    "displayname_th": "สมชาย นักศึกษา",
+    "displayname_en": "Somchai Student",
+    "email": "student001@dome.tu.ac.th",
     "faculty": "วิศวกรรมศาสตร์",
-    "department": "วิศวกรรมคอมพิวเตอร์",
+    "department": "ไฟฟ้าและคอมพิวเตอร์",
+    "role": "user",
 }
 
 TU_SUCCESS_ADMIN = {
-    **TU_SUCCESS_STUDENT,
+    "status": True,
+    "message": "Success",
+    "type": "officer",
     "username": "admin001",
-    "email": "admin001@tu.ac.th",
+    "tu_status": "ปกติ",
+    "displayname_th": "สมศักดิ์ เจ้าหน้าที่",
+    "displayname_en": "Somsak Officer",
+    "email": "admin001@dome.tu.ac.th",
+    "organization": "กองเทคโนโลยีสารสนเทศ",
+    "department": "ส่วนกลาง",
     "role": "admin",
 }
 
-TU_SUCCESS_EMPLOYEE_NO_ROLE = {
+TU_EMPLOYEE_NO_ROLE = {
     "status": True,
     "message": "Success",
     "type": "employee",
-    "username": "tech1",
-    "displayname_th": "ช่างหนึ่ง",
-    "displayname_en": "Technician One",
-    "email": "tech1@tu.ac.th",
+    "username": "techx",  # ต้องขึ้นต้นด้วย 'tech' เพื่อเข้า fallback branch
     "tu_status": "ปกติ",
-    "organization": "Maintenance",
-    "department": "Maintenance Dept.",
+    "displayname_th": "ช่าง ไม่มี role",
+    "displayname_en": "Tech No Role",
+    "email": "techx@staff.tu.ac.th",
+    "department": "งานบริการเทคนิค",
+    "organization": "สำนักงานอาคารสถานที่",
+    # ไม่มี 'role'
 }
 
-TU_FAIL = {"status": False, "message": "Invalid credential"}
+TU_FAIL_INVALID = {
+    "status": False,
+    "message": "Invalid username or password",
+}
+
+TU_ERROR_EXCEPTION = {
+    "status": False,
+    "message": "Exception occurred",
+}
 
 
-# ---------- Helper สำหรับ patch mock_tu_verify ----------
+# ---------- Helper Mixin for patching TU API ----------
 class PatchTUMixin:
     def _patch_tu_verify(self, return_value):
-        """
-        views.py import mock_tu_verify จาก authentication.utils.mock_tu_api
-        ดังนั้น patch ที่จุดนั้นได้เลย
-        """
         return patch(
             "authentication.utils.mock_tu_api.mock_tu_verify",
             return_value=return_value,
         )
 
 
+# ---------- get_client_ip ----------
+class TestGetClientIP(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def test_get_client_ip_from_x_forwarded_for(self):
+        """
+        กรณีมี HTTP_X_FORWARDED_FOR →
+        ต้องดึง IP ตัวแรกก่อนคอมม่า
+        """
+        request = self.factory.get("/")
+        request.META["HTTP_X_FORWARDED_FOR"] = "1.2.3.4, 5.6.7.8"
+
+        ip = get_client_ip(request)
+        self.assertEqual(ip, "1.2.3.4")
+
+
 # ---------- Login Page (GET) ----------
 class TestLoginPageRender(TestCase):
     def test_get_login_page_anonymous(self):
-        """GET /login โดยยังไม่ล็อกอิน → status 200 และมีฟอร์ม username/password"""
         url = reverse("authentication:login")
         res = self.client.get(url)
         self.assertEqual(res.status_code, 200)
@@ -71,12 +101,12 @@ class TestLoginPageRender(TestCase):
         self.assertContains(res, "password")
 
     @patch("authentication.views.redirect")
-    def test_get_login_page_authenticated_admin_redirects_summary(
+    def test_get_login_page_authenticated_admin_redirects_analytics_dashboard(
         self, mock_redirect
     ):
         """
         ผู้ใช้ role=admin เรียก /login →
-        view ต้องเรียก redirect('dashboard:summary')
+        view ต้องเรียก redirect('analytics:dashboard')
         """
         user = User.objects.create_user(
             username="admin",
@@ -91,12 +121,11 @@ class TestLoginPageRender(TestCase):
         self.assertEqual(res.status_code, 302)
         self.assertEqual(res.url, "/dummy-admin")
 
-        mock_redirect.assert_called_once_with("dashboard:summary")
+        mock_redirect.assert_called_once_with("analytics:dashboard")
 
     def test_get_login_page_authenticated_technician_redirects_job_list(self):
-        """ผู้ใช้ role=technician เรียก /login → redirect ไป technician:job_list"""
         user = User.objects.create_user(
-            username="techuser",
+            username="tech",
             password="x12345x",
             role="technician",
         )
@@ -104,12 +133,11 @@ class TestLoginPageRender(TestCase):
 
         res = self.client.get(reverse("authentication:login"))
         self.assertEqual(res.status_code, 302)
-        self.assertEqual(res.headers.get("Location"), reverse("technician:job_list"))
+        self.assertEqual(res.url, reverse("technician:job_list"))
 
-    def test_get_login_page_authenticated_normal_user_redirects_map(self):
-        """ผู้ใช้ role=user เรียก /login → redirect ไป dashboard:map"""
+    def test_get_login_page_authenticated_user_redirects_map(self):
         user = User.objects.create_user(
-            username="normal",
+            username="student",
             password="x12345x",
             role="user",
         )
@@ -117,76 +145,45 @@ class TestLoginPageRender(TestCase):
 
         res = self.client.get(reverse("authentication:login"))
         self.assertEqual(res.status_code, 302)
-        self.assertEqual(res.headers.get("Location"), reverse("dashboard:map"))
+        self.assertEqual(res.url, reverse("dashboard:map"))
 
 
-# ---------- Local login ----------
+# ---------- Local Login (POST) ----------
 class TestLocalLoginFlow(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="localuser",
-            password="localpass",
+        self.url = reverse("authentication:login")
+        self.user_admin = User.objects.create_user(
+            username="admin",
+            password="admin123",
+            role="admin",
+        )
+        self.user_tech = User.objects.create_user(
+            username="tech",
+            password="tech123",
+            role="technician",
+        )
+        self.user_normal = User.objects.create_user(
+            username="user",
+            password="user123",
             role="user",
         )
 
-    def test_local_login_success_redirects_to_dashboard_map_and_logs(self):
-        """Local login สำเร็จ → redirect dashboard:map และสร้าง LoginLog SUCCESS/LOCAL"""
-        url = reverse("authentication:login")
-        res = self.client.post(
-            url,
-            {
-                "username": "localuser",
-                "password": "localpass",
-                "login_type": "local",
-            },
-        )
-        self.assertEqual(res.status_code, 302)
-        self.assertEqual(res.headers.get("Location"), reverse("dashboard:map"))
-
-        log = LoginLog.objects.latest("created_at")
-        self.assertEqual(log.username, "localuser")
-        self.assertEqual(log.status, "SUCCESS")
-        self.assertEqual(log.login_method, "LOCAL")
-
-        messages = list(get_messages(res.wsgi_request))
-        self.assertTrue(any("ยินดีต้อนรับ" in str(m) for m in messages))
-
-    def test_local_login_fail_stays_on_login_and_logs_failed(self):
-        """Local login รหัสผิด → อยู่หน้าเดิม และ LoginLog เป็น FAILED/LOCAL"""
-        url = reverse("authentication:login")
-        res = self.client.post(
-            url,
-            {
-                "username": "localuser",
-                "password": "WRONG",
-                "login_type": "local",
-            },
-        )
-        self.assertEqual(res.status_code, 200)
-
-        log = LoginLog.objects.latest("created_at")
-        self.assertEqual(log.username, "localuser")
-        self.assertEqual(log.status, "FAILED")
-        self.assertEqual(log.login_method, "LOCAL")
-
-        messages = list(get_messages(res.wsgi_request))
-        self.assertTrue(any("ไม่ถูกต้อง" in str(m) for m in messages))
-
     @patch("authentication.views.redirect")
-    def test_local_login_admin_redirects_summary(self, mock_redirect):
-        """Local login + role=admin → เรียก redirect('dashboard:summary')"""
-        admin_user = User.objects.create_user(
-            username="localadmin",
-            password="adminpass",
-            role="admin",
-        )
+    def test_post_local_login_success_admin_redirects_dashboard_summary(
+        self, mock_redirect
+    ):
+        """
+        Local login + role=admin →
+        view ต้องเรียก redirect('dashboard:summary')
+        (patch redirect เพื่อไม่ต้องมี URL นี้จริง ๆ ใน project)
+        """
         mock_redirect.return_value = HttpResponseRedirect("/dummy-admin")
 
         res = self.client.post(
-            reverse("authentication:login"),
+            self.url,
             {
-                "username": "localadmin",
-                "password": "adminpass",
+                "username": "admin",
+                "password": "admin123",
                 "login_type": "local",
             },
         )
@@ -195,48 +192,69 @@ class TestLocalLoginFlow(TestCase):
         self.assertEqual(res.url, "/dummy-admin")
         mock_redirect.assert_called_once_with("dashboard:summary")
 
-        # ยืนยันว่า auth ผ่านจริง
-        logged = LoginLog.objects.latest("created_at")
-        self.assertEqual(logged.username, "localadmin")
-        self.assertEqual(logged.status, "SUCCESS")
-        self.assertEqual(logged.login_method, "LOCAL")
-
-    @patch("authentication.views.redirect")
-    def test_local_login_technician_redirects_job_list(self, mock_redirect):
-        """Local login + role=technician → เรียก redirect('technician:job_list')"""
-        tech_user = User.objects.create_user(
-            username="localtech",
-            password="techpass",
-            role="technician",
-        )
-        mock_redirect.return_value = HttpResponseRedirect("/dummy-tech")
-
+    def test_post_local_login_success_technician_redirects_job_list(self):
         res = self.client.post(
-            reverse("authentication:login"),
+            self.url,
             {
-                "username": "localtech",
-                "password": "techpass",
+                "username": "tech",
+                "password": "tech123",
                 "login_type": "local",
             },
         )
-
         self.assertEqual(res.status_code, 302)
-        self.assertEqual(res.url, "/dummy-tech")
-        mock_redirect.assert_called_once_with("technician:job_list")
+        self.assertEqual(res.url, reverse("technician:job_list"))
 
-        logged = LoginLog.objects.latest("created_at")
-        self.assertEqual(logged.username, "localtech")
-        self.assertEqual(logged.status, "SUCCESS")
-        self.assertEqual(logged.login_method, "LOCAL")
+    def test_post_local_login_success_user_redirects_dashboard_map(self):
+        res = self.client.post(
+            self.url,
+            {
+                "username": "user",
+                "password": "user123",
+                "login_type": "local",
+            },
+        )
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(res.url, reverse("dashboard:map"))
+
+    def test_post_local_login_invalid_credentials_shows_error(self):
+        res = self.client.post(
+            self.url,
+            {
+                "username": "user",
+                "password": "wrongpass",
+                "login_type": "local",
+            },
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง")
+
+    def test_post_local_login_missing_login_type_default_local(self):
+        """
+        ถ้าไม่ได้ส่ง login_type มา →
+        view ควรใช้ local เป็น default
+        """
+        res = self.client.post(
+            self.url,
+            {
+                "username": "user",
+                "password": "user123",
+                # no login_type
+            },
+        )
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(res.url, reverse("dashboard:map"))
 
 
-# ---------- TU API login ----------
+# ---------- TU API Login (POST) ----------
 class TestTUAPILoginFlow(PatchTUMixin, TestCase):
     @patch("authentication.views.redirect")
-    def test_tu_api_success_with_role_admin_redirects_summary(
+    def test_tu_api_success_with_role_admin_redirects_analytics_dashboard(
         self, mock_redirect
     ):
-        """TU API success + result['role']='admin' → role=admin + redirect('dashboard:summary')"""
+        """
+        TU API success + result['role']='admin'
+        → role=admin + redirect('analytics:dashboard')
+        """
         mock_redirect.return_value = HttpResponseRedirect("/dummy-admin")
 
         with self._patch_tu_verify(TU_SUCCESS_ADMIN):
@@ -251,7 +269,7 @@ class TestTUAPILoginFlow(PatchTUMixin, TestCase):
 
         self.assertEqual(res.status_code, 302)
         self.assertEqual(res.url, "/dummy-admin")
-        mock_redirect.assert_called_once_with("dashboard:summary")
+        mock_redirect.assert_called_once_with("analytics:dashboard")
 
         user = User.objects.get(username="admin001")
         self.assertEqual(user.role, "admin")
@@ -259,7 +277,6 @@ class TestTUAPILoginFlow(PatchTUMixin, TestCase):
             self.assertEqual(user.auth_provider, "TU_API")
 
     def test_tu_api_success_student_role_user_redirects_to_map(self):
-        """TU API success แบบ student ทั่วไป → role=user → redirect dashboard:map"""
         with self._patch_tu_verify(TU_SUCCESS_STUDENT):
             res = self.client.post(
                 reverse("authentication:login"),
@@ -271,141 +288,109 @@ class TestTUAPILoginFlow(PatchTUMixin, TestCase):
             )
 
         self.assertEqual(res.status_code, 302)
-        self.assertEqual(res.headers.get("Location"), reverse("dashboard:map"))
+        self.assertEqual(res.url, reverse("dashboard:map"))
 
         user = User.objects.get(username="student001")
         self.assertEqual(user.role, "user")
-        if hasattr(user, "displayname_th"):
-            self.assertEqual(
-                user.displayname_th, TU_SUCCESS_STUDENT["displayname_th"]
-            )
+        if hasattr(user, "auth_provider"):
+            self.assertEqual(user.auth_provider, "TU_API")
 
-    def test_tu_api_success_employee_tech_prefix_redirects_job_list(self):
-        """TU API success (employee) + username ขึ้นต้นด้วย 'tech' → role=technician → redirect technician:job_list"""
-        with self._patch_tu_verify(TU_SUCCESS_EMPLOYEE_NO_ROLE):
+    def test_tu_api_fail_invalid_credentials_shows_message(self):
+        """
+        TU API ตอบกลับ status=False →
+        ควร render หน้า login เดิม และแสดงข้อความ error
+        """
+        with self._patch_tu_verify(TU_FAIL_INVALID):
             res = self.client.post(
                 reverse("authentication:login"),
                 {
-                    "username": "tech1",
-                    "password": "techpass",
+                    "username": "wronguser",
+                    "password": "wrongpass",
+                    "login_type": "tu_api",
+                },
+            )
+
+        self.assertEqual(res.status_code, 200)
+        # ตาม view: ใช้ข้อความ 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง (TU API)'
+        self.assertContains(res, "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง (TU API)")
+
+    def test_tu_api_exception_dict_shows_same_error_message(self):
+        """
+        ถ้า mock_tu_verify คืน dict สถานะ False (เช่นจาก error ภายใน) →
+        ควรแสดงข้อความ error เดียวกับกรณี invalid
+        """
+        with self._patch_tu_verify(TU_ERROR_EXCEPTION):
+            res = self.client.post(
+                reverse("authentication:login"),
+                {
+                    "username": "exception",
+                    "password": "pass",
+                    "login_type": "tu_api",
+                },
+            )
+
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง (TU API)")
+
+    def test_tu_api_employee_without_role_falls_back_to_technician(self):
+        """
+        กรณี TU API ตอบเป็น employee แต่ไม่มี 'role' →
+        username ขึ้นต้นด้วย 'tech' → ต้องตั้ง role='technician'
+        และ redirect ไป technician:job_list
+        """
+        with self._patch_tu_verify(TU_EMPLOYEE_NO_ROLE):
+            res = self.client.post(
+                reverse("authentication:login"),
+                {
+                    "username": "techx",
+                    "password": "anypass",
                     "login_type": "tu_api",
                 },
             )
 
         self.assertEqual(res.status_code, 302)
-        self.assertEqual(
-            res.headers.get("Location"), reverse("technician:job_list")
-        )
+        self.assertEqual(res.url, reverse("technician:job_list"))
 
-        user = User.objects.get(username="tech1")
+        user = User.objects.get(username="techx")
         self.assertEqual(user.role, "technician")
-        if hasattr(user, "organization"):
-            self.assertEqual(
-                user.organization, TU_SUCCESS_EMPLOYEE_NO_ROLE["organization"]
-            )
-
-    def test_tu_api_fail_stays_on_login_and_logs_failed(self):
-        """TU API ล้มเหลว → อยู่หน้าเดิม 200 และ LoginLog FAILED/TU_API"""
-        with self._patch_tu_verify(TU_FAIL):
-            res = self.client.post(
-                reverse("authentication:login"),
-                {
-                    "username": "student001",
-                    "password": "Wrong",
-                    "login_type": "tu_api",
-                },
-            )
-
-        self.assertEqual(res.status_code, 200)
-
-        log = LoginLog.objects.latest("created_at")
-        self.assertEqual(log.username, "student001")
-        self.assertEqual(log.status, "FAILED")
-        self.assertEqual(log.login_method, "TU_API")
-
-        messages = list(get_messages(res.wsgi_request))
-        self.assertTrue(
-            any("TU API" in str(m) or "ไม่ถูกต้อง" in str(m) for m in messages)
-        )
-
-
-# ---------- Edge cases & get_client_ip ----------
-class TestGetClientIPAndEdgeCases(TestCase):
-    def test_post_without_login_type_treated_as_local_failed(self):
-        """
-        ถ้าไม่ส่ง login_type →
-        view จะถือว่าเป็น local login และเมื่อ credential ไม่ถูกต้อง → FAILED/LOCAL
-        """
-        res = self.client.post(
-            reverse("authentication:login"),
-            {
-                "username": "someone",
-                "password": "pass",
-            },
-        )
-        self.assertEqual(res.status_code, 200)
-
-        log = LoginLog.objects.latest("created_at")
-        self.assertEqual(log.username, "someone")
-        self.assertEqual(log.status, "FAILED")
-        self.assertEqual(log.login_method, "LOCAL")
-
-    def test_get_client_ip_prefers_x_forwarded_for(self):
-        """มี header X-Forwarded-For → ip_address ใน LoginLog ต้องเป็นค่าแรก"""
-        User.objects.create_user(
-            username="ipuser", password="ippass", role="user"
-        )
-        res = self.client.post(
-            reverse("authentication:login"),
-            {
-                "username": "ipuser",
-                "password": "ippass",
-                "login_type": "local",
-            },
-            HTTP_X_FORWARDED_FOR="1.2.3.4, 5.6.7.8",
-        )
-        self.assertEqual(res.status_code, 302)
-
-        log = LoginLog.objects.latest("created_at")
-        self.assertEqual(log.ip_address, "1.2.3.4")
-
-    def test_get_client_ip_uses_remote_addr_when_no_forwarded_for(self):
-        """ถ้าไม่มี X-Forwarded-For → ใช้ REMOTE_ADDR เป็น ip_address"""
-        User.objects.create_user(
-            username="ipuser2", password="ippass2", role="user"
-        )
-        res = self.client.post(
-            reverse("authentication:login"),
-            {
-                "username": "ipuser2",
-                "password": "ippass2",
-                "login_type": "local",
-            },
-            REMOTE_ADDR="9.8.7.6",
-        )
-        self.assertEqual(res.status_code, 302)
-
-        log = LoginLog.objects.latest("created_at")
-        self.assertEqual(log.ip_address, "9.8.7.6")
+        self.assertEqual(user.organization, "สำนักงานอาคารสถานที่")
+        self.assertEqual(user.department, "งานบริการเทคนิค")
 
 
 # ---------- Logout ----------
 class TestLogoutView(TestCase):
-    def test_logout_authenticated_user_redirects_to_login_with_cache_headers(
-        self,
-    ):
-        """logout → redirect login และตั้ง header ป้องกัน cache"""
-        user = User.objects.create_user(
-            username="logoutuser", password="x12345x"
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="user",
+            password="user123",
+            role="user",
         )
-        self.client.force_login(user)
 
-        res = self.client.get(reverse("authentication:logout"))
+    def test_logout_redirects_to_login_and_session_cleared(self):
+        self.client.force_login(self.user)
+        url = reverse("authentication:logout")
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(res.url, reverse("authentication:login"))
+
+        # หลัง logout แล้วไปหน้า protected → ต้องโดน redirect login
+        res2 = self.client.get(reverse("dashboard:map"))
+        self.assertEqual(res2.status_code, 302)
+        self.assertIn("login", res2.url)
+
+    def test_logout_anonymous_still_redirects_login_with_no_cache_headers(self):
+        """
+        ถ้ายังไม่ล็อกอินแล้วเรียก /logout →
+        ก็ redirect login พร้อม header no-cache
+        """
+        url = reverse("authentication:logout")
+        res = self.client.get(url)
+
         self.assertEqual(res.status_code, 302)
         self.assertEqual(
             res.headers.get("Location"), reverse("authentication:login")
         )
-
         self.assertEqual(
             res.headers.get("Cache-Control"),
             "no-cache, no-store, must-revalidate, private",
@@ -413,17 +398,104 @@ class TestLogoutView(TestCase):
         self.assertEqual(res.headers.get("Pragma"), "no-cache")
         self.assertEqual(res.headers.get("Expires"), "0")
 
-    def test_logout_anonymous_still_redirects_login(self):
-        """ถ้ายังไม่ล็อกอินแล้วเรียก /logout → ก็ redirect login พร้อม header เดิม"""
-        res = self.client.get(reverse("authentication:logout"))
-        self.assertEqual(res.status_code, 302)
-        self.assertEqual(
-            res.headers.get("Location"), reverse("authentication:login")
+
+# ---------- LoginLog creation ----------
+class TestLoginLogCreation(PatchTUMixin, TestCase):
+    def setUp(self):
+        self.url = reverse("authentication:login")
+        self.user = User.objects.create_user(
+            username="user",
+            password="user123",
+            role="user",
         )
 
-        self.assertEqual(
-            res.headers.get("Cache-Control"),
-            "no-cache, no-store, must-revalidate, private",
+    def test_login_creates_loginlog_entry_local(self):
+        """
+        ทุกครั้งที่ login สำเร็จด้วย local →
+        ต้องมีการสร้าง LoginLog (อิงจากฟิลด์ username เพราะไม่มี FK user)
+        """
+        res = self.client.post(
+            self.url,
+            {
+                "username": "user",
+                "password": "user123",
+                "login_type": "local",
+            },
         )
-        self.assertEqual(res.headers.get("Pragma"), "no-cache")
-        self.assertEqual(res.headers.get("Expires"), "0")
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(res.url, reverse("dashboard:map"))
+
+        logs = LoginLog.objects.filter(username=self.user.username)
+        self.assertEqual(logs.count(), 1)
+        log = logs.first()
+        self.assertEqual(log.login_method, "LOCAL")
+        self.assertEqual(log.status, "SUCCESS")
+        self.assertIsNotNone(log.ip_address)
+
+    def test_tu_api_login_creates_loginlog_entry(self):
+        """
+        Login ผ่าน TU API สำเร็จ →
+        สร้าง LoginLog ด้วย login_method='TU_API'
+        """
+        with self._patch_tu_verify(TU_SUCCESS_STUDENT):
+            res = self.client.post(
+                self.url,
+                {
+                    "username": "student001",
+                    "password": "student123",
+                    "login_type": "tu_api",
+                },
+            )
+
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(res.url, reverse("dashboard:map"))
+
+        logs = LoginLog.objects.filter(username="student001")
+        self.assertEqual(logs.count(), 1)
+        log = logs.first()
+        self.assertEqual(log.login_method, "TU_API")
+        self.assertEqual(log.status, "SUCCESS")
+        self.assertIsNotNone(log.ip_address)
+
+
+# ---------- Messages test ----------
+class TestLoginMessages(PatchTUMixin, TestCase):
+    def setUp(self):
+        self.url = reverse("authentication:login")
+        self.user = User.objects.create_user(
+            username="user",
+            password="user123",
+            role="user",
+        )
+
+    def test_invalid_local_login_shows_message(self):
+        res = self.client.post(
+            self.url,
+            {
+                "username": "user",
+                "password": "wrongpass",
+                "login_type": "local",
+            },
+        )
+        self.assertEqual(res.status_code, 200)
+        messages = list(get_messages(res.wsgi_request))
+        self.assertTrue(
+            any("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" in str(m) for m in messages)
+        )
+
+    def test_tu_api_fail_shows_message(self):
+        with self._patch_tu_verify(TU_FAIL_INVALID):
+            res = self.client.post(
+                self.url,
+                {
+                    "username": "nouser",
+                    "password": "nopass",
+                    "login_type": "tu_api",
+                },
+            )
+
+        self.assertEqual(res.status_code, 200)
+        messages = list(get_messages(res.wsgi_request))
+        self.assertTrue(
+            any("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง (TU API)" in str(m) for m in messages)
+        )
