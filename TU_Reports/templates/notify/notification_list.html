@@ -3,25 +3,35 @@
 
 {% block title %}การแจ้งเตือน - TU Report{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/notification_list.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="max-w-4xl mx-auto py-8 px-4">
-  <div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-800"> การแจ้งเตือน</h1>
-    <p class="text-sm text-gray-600 mt-2">รายการแจ้งเตือนทั้งหมด</p>
+<div class="notif-page">
+  <div class="notif-header">
+    <div class="notif-header-text">
+      <h1 class="notif-title">
+        <i class="fa-solid fa-bell notif-title-icon"></i>
+        การแจ้งเตือน
+      </h1>
+      <p class="notif-subtitle">รายการแจ้งเตือนทั้งหมด</p>
+    </div>
   </div>
 
   <!-- Summary Stats -->
-  <div class="bg-white rounded-lg shadow p-4 mb-6">
-    <div class="flex items-center justify-between">
+  <div class="notif-card notif-summary-card">
+    <div class="notif-summary-main">
       <div>
-        <p class="text-sm text-gray-600">การแจ้งเตือนที่ยังไม่ได้อ่าน</p>
-        <p class="text-3xl font-bold text-red-600">{{ unread_count }}</p>
+        <p class="notif-summary-label">การแจ้งเตือนที่ยังไม่ได้อ่าน</p>
+        <p class="notif-summary-number">{{ unread_count }}</p>
       </div>
       {% if unread_count > 0 %}
       <form method="post" action="{% url 'notify:mark_all_read' %}">
         {% csrf_token %}
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-           ทำเครื่องหมายอ่านทั้งหมด
+        <button type="submit" class="btn btn-primary btn-icon notif-mark-all-btn">
+          <i class="fa-regular fa-circle-check"></i>
+          <span>ทำเครื่องหมายอ่านทั้งหมด</span>
         </button>
       </form>
       {% endif %}
@@ -29,13 +39,16 @@
   </div>
 
   <!-- Filters -->
-  <div class="bg-white rounded-lg shadow p-4 mb-6">
-    <form method="get" class="space-y-3">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="notif-card notif-filter-card">
+    <form method="get" class="notif-filter-form">
+      <div class="notif-filter-grid">
         <!-- Filter by Read Status -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">สถานะการอ่าน</label>
-          <select name="read" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+        <div class="notif-filter-group">
+          <label class="notif-filter-label">
+            <i class="fa-regular fa-eye notif-filter-label-icon"></i>
+            สถานะการอ่าน
+          </label>
+          <select name="read" onchange="this.form.submit()" class="notif-select">
             <option value="">ทั้งหมด</option>
             <option value="unread" {% if filter_read == 'unread' %}selected{% endif %}>ยังไม่ได้อ่าน</option>
             <option value="read" {% if filter_read == 'read' %}selected{% endif %}>อ่านแล้ว</option>
@@ -43,27 +56,31 @@
         </div>
 
         <!-- Filter by Type -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">ประเภท</label>
-          <select name="type" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+        <div class="notif-filter-group">
+          <label class="notif-filter-label">
+            <i class="fa-regular fa-square-check notif-filter-label-icon"></i>
+            ประเภท
+          </label>
+          <select name="type" onchange="this.form.submit()" class="notif-select">
             <option value="">ทั้งหมด</option>
-            <option value="NEW_TICKET" {% if filter_type == 'NEW_TICKET' %}selected{% endif %}>Ticket ใหม่</option>
-            <option value="ASSIGNED" {% if filter_type == 'ASSIGNED' %}selected{% endif %}>มอบหมายงาน</option>
-            <option value="REASSIGNED" {% if filter_type == 'REASSIGNED' %}selected{% endif %}>มอบหมายใหม่</option>
-            <option value="STATUS_CHANGE" {% if filter_type == 'STATUS_CHANGE' %}selected{% endif %}>เปลี่ยนสถานะ</option>
-            <option value="COMPLETED" {% if filter_type == 'COMPLETED' %}selected{% endif %}>ปิดงาน</option>
-            <option value="URGENT" {% if filter_type == 'URGENT' %}selected{% endif %}>เร่งด่วน</option>
-            <option value="COMMENT" {% if filter_type == 'COMMENT' %}selected{% endif %}>ข้อความ</option>
-            <option value="FEEDBACK" {% if filter_type == 'FEEDBACK' %}selected{% endif %}>ความคิดเห็น</option>
+            <option value="NEW_TICKET"   {% if filter_type == 'NEW_TICKET' %}selected{% endif %}>งานแจ้งใหม่</option>
+            <option value="ASSIGNED"     {% if filter_type == 'ASSIGNED' %}selected{% endif %}>มอบหมายงาน</option>
+            <option value="REASSIGNED"   {% if filter_type == 'REASSIGNED' %}selected{% endif %}>มอบหมายใหม่</option>
+            <option value="STATUS_CHANGE"{% if filter_type == 'STATUS_CHANGE' %}selected{% endif %}>เปลี่ยนสถานะ</option>
+            <option value="COMPLETED"    {% if filter_type == 'COMPLETED' %}selected{% endif %}>ปิดงาน</option>
+            <option value="URGENT"       {% if filter_type == 'URGENT' %}selected{% endif %}>เร่งด่วน</option>
+            <option value="COMMENT"      {% if filter_type == 'COMMENT' %}selected{% endif %}>ข้อความ</option>
+            <option value="FEEDBACK"     {% if filter_type == 'FEEDBACK' %}selected{% endif %}>ความคิดเห็น</option>
           </select>
         </div>
       </div>
 
       <!-- Clear Filters -->
       {% if filter_read or filter_type %}
-      <div>
-        <a href="{% url 'notify:list' %}" class="text-sm text-blue-600 hover:underline">
-           ล้างตัวกรอง
+      <div class="notif-filter-clear">
+        <a href="{% url 'notify:list' %}" class="notif-filter-clear-link">
+          <i class="fa-solid fa-arrow-rotate-left"></i>
+          ล้างตัวกรอง
         </a>
       </div>
       {% endif %}
@@ -71,99 +88,127 @@
   </div>
 
   <!-- Notifications List -->
-  <div class="space-y-3">
+  <div class="notif-list">
     {% if notifications %}
       {% for notif in notifications %}
-      <div class="bg-white rounded-lg shadow hover:shadow-md transition-shadow {% if not notif.is_read %}border-l-4 border-red-500{% endif %}">
-        <div class="p-4">
-          <div class="flex items-start justify-between">
-            <div class="flex-1">
-              <!-- Icon + Type Badge -->
-              <div class="flex items-center gap-2 mb-2">
+      <div class="notif-item {% if not notif.is_read %}notif-item--unread{% endif %}">
+        <div class="notif-item-inner">
+          <!-- Left: icon + content -->
+          <div class="notif-item-main">
+            <!-- Icon + Type Badge -->
+            <div class="notif-item-meta">
+              <div class="notif-type">
                 {% if notif.notification_type == 'NEW_TICKET' %}
-                  <span class="text-2xl"></span>
-                  <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">Ticket ใหม่</span>
+                  <div class="notif-type-icon notif-type-icon--blue">
+                    <i class="fa-solid fa-ticket"></i>
+                  </div>
+                  <span class="badge badge--blue">Ticket ใหม่</span>
                 {% elif notif.notification_type == 'ASSIGNED' %}
-                  <span class="text-2xl"></span>
-                  <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded">มอบหมายงาน</span>
+                  <div class="notif-type-icon notif-type-icon--purple">
+                    <i class="fa-solid fa-user-gear"></i>
+                  </div>
+                  <span class="badge badge--purple">มอบหมายงาน</span>
                 {% elif notif.notification_type == 'REASSIGNED' %}
-                  <span class="text-2xl"></span>
-                  <span class="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded">มอบหมายใหม่</span>
+                  <div class="notif-type-icon notif-type-icon--orange">
+                    <i class="fa-solid fa-rotate"></i>
+                  </div>
+                  <span class="badge badge--orange">มอบหมายใหม่</span>
                 {% elif notif.notification_type == 'STATUS_CHANGE' %}
-                  <span class="text-2xl"></span>
-                  <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">เปลี่ยนสถานะ</span>
+                  <div class="notif-type-icon notif-type-icon--indigo">
+                    <i class="fa-solid fa-bell"></i>
+                  </div>
+                  <span class="badge badge--indigo">เปลี่ยนสถานะ</span>
                 {% elif notif.notification_type == 'COMPLETED' %}
-                  <span class="text-2xl"></span>
-                  <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">ปิดงาน</span>
+                  <div class="notif-type-icon notif-type-icon--green">
+                    <i class="fa-solid fa-circle-check"></i>
+                  </div>
+                  <span class="badge badge--green">ปิดงาน</span>
                 {% elif notif.notification_type == 'URGENT' %}
-                  <span class="text-2xl"></span>
-                  <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded">เร่งด่วน</span>
+                  <div class="notif-type-icon notif-type-icon--red">
+                    <i class="fa-solid fa-bolt"></i>
+                  </div>
+                  <span class="badge badge--red">เร่งด่วน</span>
                 {% elif notif.notification_type == 'COMMENT' %}
-                  <span class="text-2xl"></span>
-                  <span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded">ข้อความ</span>
+                  <div class="notif-type-icon notif-type-icon--gray">
+                    <i class="fa-regular fa-comment-dots"></i>
+                  </div>
+                  <span class="badge badge--gray">ข้อความ</span>
                 {% elif notif.notification_type == 'FEEDBACK' %}
-                  <span class="text-2xl"></span>
-                  <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded">ความคิดเห็น</span>
+                  <div class="notif-type-icon notif-type-icon--yellow">
+                    <i class="fa-regular fa-star"></i>
+                  </div>
+                  <span class="badge badge--yellow">ความคิดเห็น</span>
+                {% else %}
+                  <div class="notif-type-icon notif-type-icon--gray">
+                    <i class="fa-regular fa-bell"></i>
+                  </div>
+                  <span class="badge badge--gray">ทั่วไป</span>
                 {% endif %}
 
                 {% if not notif.is_read %}
-                  <span class="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded">ใหม่</span>
+                  <span class="badge badge--pill badge--pill-red">ใหม่</span>
                 {% endif %}
               </div>
-
-              <!-- Title -->
-              <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ notif.title }}</h3>
-
-              <!-- Message -->
-              <p class="text-sm text-gray-600 mb-2">{{ notif.message }}</p>
-
-              <!-- Ticket Link -->
-              {% if notif.ticket %}
-              <a href="{% url 'tickets:ticket_detail' notif.ticket.id %}" class="inline-block px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200">
-                 ดู Ticket #{{ notif.ticket.id }}
-              </a>
-              {% endif %}
-
-              <!-- Timestamp -->
-              <p class="text-xs text-gray-400 mt-3">
-                 {{ notif.created_at|date:"d/m/Y H:i" }}
-                {% if notif.is_read and notif.read_at %}
-                  |  อ่านแล้วเมื่อ {{ notif.read_at|date:"d/m/Y H:i" }}
-                {% endif %}
-              </p>
             </div>
 
-            <!-- Mark as Read Button -->
-            {% if not notif.is_read %}
-            <div class="ml-4">
-              <form method="post" action="{% url 'notify:mark_read' notif.id %}">
-                {% csrf_token %}
-                <button type="submit" class="px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700" title="ทำเครื่องหมายว่าอ่านแล้ว">
-                  
-                </button>
-              </form>
-            </div>
+            <!-- Title -->
+            <h3 class="notif-item-title">{{ notif.title }}</h3>
+
+            <!-- Message -->
+            <p class="notif-item-message">{{ notif.message }}</p>
+
+            <!-- Ticket Link -->
+            {% if notif.ticket %}
+            <a href="{% url 'tickets:ticket_detail' notif.ticket.id %}" class="btn btn-ghost btn-sm">
+              <i class="fa-solid fa-up-right-from-square"></i>
+              <span>ดู Ticket #{{ notif.ticket.id }}</span>
+            </a>
             {% endif %}
+
+            <!-- Timestamp -->
+            <p class="notif-item-timestamp">
+              <i class="fa-regular fa-clock"></i>
+              {{ notif.created_at|date:"d/m/Y H:i" }}
+              {% if notif.is_read and notif.read_at %}
+                <span class="notif-item-read-at">
+                  | <i class="fa-regular fa-eye"></i>
+                  อ่านแล้วเมื่อ {{ notif.read_at|date:"d/m/Y H:i" }}
+                </span>
+              {% endif %}
+            </p>
           </div>
+
+          <!-- Right: mark as read -->
+          {% if not notif.is_read %}
+          <div class="notif-item-actions">
+            <form method="post" action="{% url 'notify:mark_read' notif.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-success btn-icon btn-sm notif-mark-read-btn" title="ทำเครื่องหมายว่าอ่านแล้ว">
+                <i class="fa-regular fa-circle-check"></i>
+                <span>อ่านแล้ว</span>
+              </button>
+            </form>
+          </div>
+          {% endif %}
         </div>
       </div>
       {% endfor %}
 
       <!-- Show More Info -->
       {% if notifications.count == 50 %}
-      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-        <p class="text-sm text-blue-800">
-          แสดง 50 รายการล่าสุด
-        </p>
+      <div class="notif-info-box">
+        <p>แสดง 50 รายการล่าสุด</p>
       </div>
       {% endif %}
 
     {% else %}
       <!-- Empty State -->
-      <div class="bg-white rounded-lg shadow p-8 text-center">
-        <div class="text-6xl mb-4"></div>
-        <h3 class="text-xl font-semibold text-gray-800 mb-2">ไม่มีการแจ้งเตือน</h3>
-        <p class="text-gray-600">
+      <div class="notif-card notif-empty">
+        <div class="notif-empty-icon-wrap">
+          <i class="fa-regular fa-bell-slash notif-empty-icon"></i>
+        </div>
+        <h3 class="notif-empty-title">ไม่มีการแจ้งเตือน</h3>
+        <p class="notif-empty-text">
           {% if filter_read or filter_type %}
             ไม่พบการแจ้งเตือนที่ตรงกับตัวกรอง
           {% else %}
@@ -176,8 +221,6 @@
 </div>
 
 <!-- Auto-refresh script (optional) -->
-<script>
-// Auto-reload every 60 seconds to get new notifications
-// setTimeout(() => location.reload(), 60000);
-</script>
+{# // ถ้าอยากให้ auto refresh ค่อยเปิดทีหลัง #}
+{# <script>setTimeout(() => location.reload(), 60000);</script> #}
 {% endblock %}

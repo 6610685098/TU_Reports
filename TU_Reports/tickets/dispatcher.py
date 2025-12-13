@@ -336,7 +336,7 @@ class AutoDispatcher:
         # ล็อกแถว ticket
         ticket = Ticket.objects.select_for_update().select_related(
             "assigned_to", "category"
-        ).get(pk=ticket.pk)
+        ).select_for_update(of=('self',)).get(pk=ticket.pk)
 
         result = self.find_best_technician(ticket)
         if not result.technician:
