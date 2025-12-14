@@ -361,7 +361,7 @@ class AutoDispatcher:
 
         # แจ้งเตือน (ไม่ให้ล้มงานหลัก)
         try:
-            notify_ticket_assigned(ticket, technician)
+            notify_ticket_assigned(ticket)
         except Exception as e:  # pragma: no cover
             logger.warning("[AutoDispatch] notify failed: ticket=%s tech=%s err=%s", ticket.id, technician.id, e)
 
