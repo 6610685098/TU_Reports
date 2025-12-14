@@ -134,12 +134,25 @@ TEMPLATES = [
 WSGI_APPLICATION = "TU_Reports.wsgi.application"
 ASGI_APPLICATION = "TU_Reports.asgi.application"
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
-    },
-}
-
+if 'REDIS_URL' in os.environ:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [os.environ.get('REDIS_URL')],
+            },
+        },
+    }
+else:
+    # ตอนอยู่ Localhost (ใช้ Docker หรือ Local Redis)
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [('127.0.0.1', 6379)],
+            },
+        },
+    }
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
