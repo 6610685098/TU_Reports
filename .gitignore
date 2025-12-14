@@ -6,6 +6,5 @@ db.sqlite3
 media/
 .venv/
 .coverage
-.coveragerc
 htmlcov/
 env/
