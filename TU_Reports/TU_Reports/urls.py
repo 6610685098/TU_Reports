@@ -29,6 +29,8 @@ urlpatterns = [
     path('tickets/', include('tickets.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('technician/', include(('technician.urls', 'technician'), namespace='technician')),
+    path('notifications/', include(('notify.urls', 'notify'), namespace='notify')),
+    path('analytics/', include(('analytics.urls', 'analytics'), namespace='analytics')),
 ]
 
 if settings.DEBUG:

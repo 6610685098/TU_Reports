@@ -1,6 +1,6 @@
 """
 Mock TU REST API
-=================
+================
 
 ไฟล์นี้จำลอง TU REST API responses สำหรับใช้ในการพัฒนาและทดสอบ
 เมื่อได้ Application-Key จริงแล้ว ให้แก้ไข settings.py:
@@ -28,6 +28,9 @@ def mock_tu_verify(username, password):
     import requests
     from django.conf import settings
 
+    # DEBUG: Print credentials to console
+    print(f"DEBUG LOGIN: username='{username}', password='{password}'")
+
     base_url = getattr(settings, "TU_API_BASE_URL", "https://restapi.tu.ac.th")
     app_key = getattr(settings, "TU_APPLICATION_KEY", "")
 
@@ -40,7 +43,7 @@ def mock_tu_verify(username, password):
             "type": "employee", "username": "staff001", "displayname_th": "พนักงาน ทดสอบ",
             "displayname_en": "Staff Test", "email": "staff001@tu.ac.th",
             "department": "งานซ่อมบำรุงอาคาร", "organization": "สำนักงานอาคารสถานที่"}},
-                "tech1": {"password": "tech123", "data": {
+        "tech1": {"password": "tech123", "data": {
             "status": True, "message": "Success", "type": "employee",
             "username": "tech1", "displayname_th": "ช่าง ทดสอบ 1",
             "displayname_en": "Technician 1", "email": "tech1@staff.tu.ac.th",
@@ -75,8 +78,13 @@ def mock_tu_verify(username, password):
             "department": "งานบริการเทคนิค", "organization": "สำนักงานอาคารสถานที่",
             "role": "technician"
         }},
-        
-    
+        "admin": {"password": "admin1234", "data": {
+            "status": True, "message": "Success", "type": "employee",
+            "username": "admin", "displayname_th": "ผู้ดูแลระบบ",
+            "displayname_en": "System Admin", "email": "admin@tu.ac.th",
+            "department": "IT Support", "organization": "สำนักงานศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร",
+            "role": "admin"
+        }},
     }
 
     username = str(username).strip()
@@ -87,12 +95,15 @@ def mock_tu_verify(username, password):
         user = MOCK_USERS[username]
         if password == user["password"]:
             logger.info(f"[Mock TU API] SUCCESS (mock) for {username}")
+            print(f"DEBUG LOGIN: SUCCESS for {username}")
             return user["data"]
         else:
             logger.warning(f"[Mock TU API] Invalid password for {username}")
+            print(f"DEBUG LOGIN: FAILED password mismatch for {username}. Expected '{user['password']}' got '{password}'")
             return {"status": False, "message": "User or Password Invalid!"}
 
     logger.info(f"[Mock TU API] User not found -> trying real TU API")
+    print(f"DEBUG LOGIN: User {username} not in MOCK_USERS")
 
     if not app_key:
         logger.error("[Mock TU API] TU_APPLICATION_KEY not configured in settings.")
@@ -344,7 +355,7 @@ def mock_tu_employee_info(username=None, displayname_th=None, displayname_en=Non
 # def is_real_api_enabled():
 #     """
 #     Check if real TU API should be used
-
+# 
 #     Returns:
 #         bool: True if TU_API_ENABLED=True in settings
 #     """
@@ -355,16 +366,16 @@ def mock_tu_employee_info(username=None, displayname_th=None, displayname_en=Non
 # def call_real_tu_api(endpoint, method='GET', data=None, headers=None):
 #     """
 #     Call real TU REST API (when Application-Key is available)
-
+# 
 #     Args:
 #         endpoint (str): API endpoint path
 #         method (str): HTTP method (GET, POST)
 #         data (dict): Request body data
 #         headers (dict): Request headers
-
+# 
 #     Returns:
 #         dict: API response
-
+# 
 #     Example:
 #         response = call_real_tu_api(
 #             '/api/v1/auth/Ad/verify',
@@ -375,32 +386,32 @@ def mock_tu_employee_info(username=None, displayname_th=None, displayname_en=Non
 #     """
 #     import requests
 #     from django.conf import settings
-
+# 
 #     base_url = getattr(settings, 'TU_API_BASE_URL', 'https://restapi.tu.ac.th')
 #     app_key = getattr(settings, 'TU_APPLICATION_KEY', '')
-
+# 
 #     if not app_key:
 #         raise ValueError("TU_APPLICATION_KEY not configured")
-
+# 
 #     url = f"{base_url}{endpoint}"
-
+# 
 #     default_headers = {
 #         'Content-Type': 'application/json',
 #         'Application-Key': app_key
 #     }
-
+# 
 #     if headers:
 #         default_headers.update(headers)
-
+# 
 #     try:
 #         if method.upper() == 'POST':
 #             response = requests.post(url, json=data, headers=default_headers, timeout=10)
 #         else:
 #             response = requests.get(url, headers=default_headers, timeout=10)
-
+# 
 #         response.raise_for_status()
 #         return response.json()
-
+# 
 #     except requests.exceptions.RequestException as e:
 #         logger.error(f"TU API call failed: {e}")
 #         return {
@@ -409,16 +420,15 @@ def mock_tu_employee_info(username=None, displayname_th=None, displayname_en=Non
 #         }
 
 
-
 # def tu_verify(username, password):
 #     """
 #     Main interface for TU authentication
 #     Automatically switches between mock and real API based on settings
-
+# 
 #     Args:
 #         username (str): TU username
 #         password (str): TU password
-
+# 
 #     Returns:
 #         dict: Authentication response
 #     """
@@ -435,17 +445,17 @@ def mock_tu_employee_info(username=None, displayname_th=None, displayname_en=Non
 # def tu_get_departments(**filters):
 #     """
 #     Get departments from TU API
-
+# 
 #     Args:
 #         **filters: org_code, org_nam_th, etc.
-
+# 
 #     Returns:
 #         dict: Department data
 #     """
 #     if is_real_api_enabled():
 #         query_params = '&'.join([f"{k}={v}" for k, v in filters.items() if v])
 #         endpoint = '/api/v2/emp/dep/find/?' + query_params if query_params else '/api/v2/emp/dep/all'
-
+# 
 #         return call_real_tu_api(endpoint, method='GET')
 #     else:
 #         return mock_tu_departments(**filters)
@@ -454,17 +464,17 @@ def mock_tu_employee_info(username=None, displayname_th=None, displayname_en=Non
 # def tu_get_employee_info(**filters):
 #     """
 #     Get employee info from TU API
-
+# 
 #     Args:
 #         **filters: username, displayname_th, etc.
-
+# 
 #     Returns:
 #         dict: Employee data
 #     """
 #     if is_real_api_enabled():
 #         query_params = '&'.join([f"{k}={v}" for k, v in filters.items() if v])
 #         endpoint = '/api/v2/profile/emp/info/?' + query_params
-
+# 
 #         return call_real_tu_api(endpoint, method='GET')
 #     else:
 #         return mock_tu_employee_info(**filters)
