@@ -374,5 +374,6 @@ def my_tickets(request):
         'date_to': date_to,
         'sort_by': sort_by,
         'filtered_count': tickets_qs.count(),
+        'completed_count': all_created.filter(status__in=['COMPLETED', 'CLOSED']).count(),
     }
     return render(request, 'technician/tech_my_tickets.html', context)

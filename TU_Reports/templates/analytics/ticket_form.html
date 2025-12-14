@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}แก้ไข Ticket - TU Report{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-edit-page">
+  <div class="edit-header">
+    <h1 class="edit-title">
+      <i class="fa-solid fa-pen-to-square edit-title-icon"></i>
+      แก้ไข Ticket #{{ ticket.id }}
+    </h1>
+    <p class="edit-subtitle">ปรับข้อมูล Ticket, หมวดหมู่, ความเร่งด่วน และมอบหมายช่าง</p>
+  </div>
+
+  <form method="POST" class="edit-ticket-card">
+    {% csrf_token %}
+
+    <!-- Title -->
+    <div class="edit-field">
+      <label for="title" class="edit-label">หัวข้อปัญหา</label>
+      <input
+        type="text"
+        name="title"
+        id="title"
+        value="{{ ticket.title }}"
+        required
+        class="edit-input"
+      >
+    </div>
+
+    <!-- Description -->
+    <div class="edit-field">
+      <label for="description" class="edit-label">รายละเอียด</label>
+      <textarea
+        name="description"
+        id="description"
+        rows="4"
+        class="edit-textarea"
+      >{{ ticket.description }}</textarea>
+    </div>
+
+    <div class="edit-form-grid">
+      <!-- Category -->
+      <div class="edit-field">
+        <label for="category" class="edit-label">หมวดหมู่</label>
+        <select name="category" id="category" class="edit-select">
+          <option value="">-- ไม่ระบุ --</option>
+          {% for cat in categories %}
+          <option value="{{ cat.id }}" {% if ticket.category_id == cat.id %}selected{% endif %}>
+            {{ cat.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Urgency -->
+      <div class="edit-field">
+        <label for="urgency_level" class="edit-label">ความเร่งด่วน</label>
+        <select name="urgency_level" id="urgency_level" class="edit-select">
+          {% for code, label in ticket.URGENCY_CHOICES %}
+          <option value="{{ code }}" {% if ticket.urgency_level == code %}selected{% endif %}>
+            {{ label }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Status -->
+      <div class="edit-field">
+        <label for="status" class="edit-label">สถานะ</label>
+        <select name="status" id="status" class="edit-select">
+          {% for code, label in ticket.STATUS_CHOICES %}
+          <option value="{{ code }}" {% if ticket.status == code %}selected{% endif %}>
+            {{ label }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Assigned To -->
+      <div class="edit-field">
+        <label for="assigned_to" class="edit-label">มอบหมายให้ช่าง</label>
+        <select name="assigned_to" id="assigned_to" class="edit-select">
+          <option value="">-- ยังไม่มอบหมาย --</option>
+          {% for tech in technicians %}
+          <option value="{{ tech.id }}" {% if ticket.assigned_to_id == tech.id %}selected{% endif %}>
+            {{ tech.get_display_name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="edit-actions">
+      <a href="{% url 'analytics:dashboard' %}" class="pill-btn pill-btn--ghost">
+        ยกเลิก
+      </a>
+      <button type="submit" class="pill-btn pill-btn--blue">
+        บันทึกการแก้ไข
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
