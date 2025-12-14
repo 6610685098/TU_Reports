@@ -10,9 +10,6 @@
 
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     tailwind.config = {
@@ -24,6 +21,9 @@
     }
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  
   {% block extra_css %}{% endblock %}
 </head>
 
@@ -107,15 +107,15 @@
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
               stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
-          {% with unread_notifications_count|default:0 as notif_count %}
-            {% if notif_count %}
-              <span
-                class="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-red-100 transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full">
-                {{ notif_count }}
-              </span>
-            {% endif %}
-          {% endwith %}
+          
+          <span id="notification-badge"
+            class="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-red-100 transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full"
+            style="display: {% if unread_notifications_count and unread_notifications_count > 0 %}inline-flex{% else %}none{% endif %};">
+            {{ unread_notifications_count|default:0 }}
+          </span>
+          
         </a>
+
         <span class="who-name text-white">{{ user.get_display_name }}</span>
         <span class="role-chip">{{ user.get_role_display }}</span>
         <a href="{% url 'authentication:logout' %}" class="nav-cta nav-logout hide-sm">
@@ -127,7 +127,6 @@
         </a>
       </div>
 
-        <!-- Burger (mobile) -->
         <button class="nav-burger show-sm" aria-label="menu" id="navBurger">
           <span></span><span></span><span></span>
         </button>
@@ -136,9 +135,7 @@
     </div>
     </div>
 
-    <!-- Drawer (mobile) -->
     <div class="nav-drawer" id="navDrawer">
-      <!-- งานของฉัน (mobile) -->
       <a href="{% url 'tickets:create_ticket' %}"
         class="nav-drawer-link {% if request.resolver_match.url_name == 'create_ticket' %}is-active{% endif %}">
         <svg viewBox="0 0 24 24" class="ico">
@@ -180,7 +177,6 @@
         </svg>
         <span>Logout</span>
       </a>
-      <a
     </div>
   </nav>
   {% endif %}
@@ -189,15 +185,6 @@
   <main class="main">
     {% block content %}{% endblock %}
   </main>
-
-  <!-- {% if user.is_authenticated %}
-  <footer class="footer">
-    <div class="footer-inner">
-      <p>&copy; 2025 TU Report - Thammasat University Ticket Management System</p>
-      <p class="sub">สร้างโดย Django 5.0 | Powered by PostGIS</p>
-    </div>
-  </footer>
-  {% endif %} -->
 
   {% if user.is_authenticated %}
   <script>
@@ -221,6 +208,76 @@
       });
     }
   </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    // ตรวจสอบว่ามี user login อยู่ไหม โดยเช็คจาก user.id ใน template
+    const currentUserId = "{{ user.id|default_if_none:'' }}";
+
+    if (currentUserId) {
+        // สร้าง WebSocket Connection
+        const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+        const wsUrl = wsScheme + '://' + window.location.host + '/ws/notifications/';
+        
+        console.log('Connecting to WebSocket:', wsUrl);
+        const notificationSocket = new WebSocket(wsUrl);
+
+        notificationSocket.onopen = function(e) {
+            console.log('✅ Notification WebSocket connected');
+        };
+
+        notificationSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            
+            // เราสนใจเฉพาะข้อความ type 'notification'
+            if (data.type === 'notification') {
+                const notif = data.notification;
+                const unreadCount = data.unread_count;
+
+                // 1. อัปเดตตัวเลข Badge
+                const badge = document.getElementById('notification-badge');
+                if (badge) {
+                    badge.innerText = unreadCount;
+                    // ถ้า > 0 ให้แสดง, ถ้า = 0 ให้ซ่อน
+                    if (unreadCount > 0) {
+                        badge.style.display = 'inline-flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+
+                // 2. เด้ง Popup แจ้งเตือน (Toast) มุมขวาบน
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                });
+
+                Toast.fire({
+                    icon: 'info', // ปรับไอคอนได้ตามประเภท notif.notification_type ถ้าต้องการ
+                    title: notif.title,
+                    text: notif.message
+                });
+            }
+        };
+
+        notificationSocket.onclose = function(e) {
+            console.error('❌ Notification socket closed unexpectedly');
+        };
+
+        notificationSocket.onerror = function(err) {
+            console.error('WebSocket encountered error: ', err.message, 'Closing socket');
+            notificationSocket.close();
+        };
+    }
+  </script>
+
   {% block extra_js %}{% endblock %}
 </body>
 
