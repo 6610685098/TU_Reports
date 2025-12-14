@@ -4,7 +4,7 @@
 {% block title %}เข้าสู่ระบบ - TU Report{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/login.css' %}">
+<link rel="stylesheet" href="{% static 'css/login.css' %}"> 
 {% endblock %}
 
 {% block content %}
@@ -21,13 +21,13 @@
       </div>
 
       {% if messages %}
-      <div class="messages">
-        {% for message in messages %}
-        <div class="message {% if message.tags == 'error' %}message--error{% else %}message--success{% endif %}">
-          {{ message }}
+        <div class="messages">
+          {% for message in messages %}
+            <div class="message {% if message.tags == 'error' %}message--error{% else %}message--success{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
         </div>
-        {% endfor %}
-      </div>
       {% endif %}
 
       <form method="post" class="auth-form">
@@ -35,16 +35,30 @@
 
         <div class="form-group">
           <label for="username" class="label">ชื่อผู้ใช้</label>
-          <input type="text" id="username" name="username" class="input" required placeholder="studentID">
+          <input
+            type="text"
+            id="username"
+            name="username"
+            class="input"
+            required
+            placeholder="studentID"
+          >
         </div>
 
         <div class="form-group">
           <label for="password" class="label">รหัสผ่าน</label>
-          <input type="password" id="password" name="password" class="input" required placeholder="password">
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="input"
+            required
+            placeholder="password"
+          >
         </div>
 
         <div class="action-group">
-          <button type="submit" name="login_type" value="tu_api" class="btn btn--red" title="เข้าสู่ระบบ">Login</button>
+          <button type="submit" name="login_type" value="tu_api" class="btn btn--red">Login</button>
         </div>
       </form>
     </div>

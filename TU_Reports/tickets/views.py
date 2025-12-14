@@ -1,10 +1,5 @@
+# tickets/views.py
 from datetime import datetime, timedelta
-from .dispatcher import auto_dispatch_ticket
-from notify.utils import (
-    notify_status_changed,
-    notify_ticket_completed,
-    notify_ticket_assigned,
-)
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Q
@@ -12,7 +7,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
 from .forms import TicketForm
-from .models import Ticket, TicketStatusHistory, BeforeAfterPhoto, Category
+from .models import (
+    Ticket, TicketStatusHistory, BeforeAfterPhoto, Category
+)
 from tickets.utils.images import resize_and_compress
 from .dispatcher import auto_dispatch_ticket
 
@@ -22,46 +19,43 @@ from .dispatcher import auto_dispatch_ticket
 # -------------------------------------------------------------------
 @login_required
 def create_ticket(request):
-    if request.method == "POST":
+    if request.method == 'POST':
         form = TicketForm(request.POST, request.FILES)
         if form.is_valid():
             ticket = form.save(commit=False)
             ticket.created_by = request.user
 
             # รับ lat/lng จากฟอร์ม (ถ้ามี)
-            lat = request.POST.get("latitude")
-            lng = request.POST.get("longitude")
+            lat = request.POST.get('latitude')
+            lng = request.POST.get('longitude')
             if lat and lng:
                 try:
                     ticket.latitude = float(lat)
                     ticket.longitude = float(lng)
                 except ValueError:
-                    messages.warning(request, "พิกัดไม่ถูกต้อง ระบบจะบันทึกโดยไม่ใช้พิกัด")
+                    messages.warning(request, 'พิกัดไม่ถูกต้อง ระบบจะบันทึกโดยไม่ใช้พิกัด')
 
             ticket.save()
 
             # BEFORE photos (รองรับทั้ง before_photo เดี่ยว และ photos_before หลายไฟล์)
             before_files = []
-            if request.FILES.get("before_photo"):
-                before_files.append(request.FILES["before_photo"])
-            before_files.extend(request.FILES.getlist("photos_before"))
+            if request.FILES.get('before_photo'):
+                before_files.append(request.FILES['before_photo'])
+            before_files.extend(request.FILES.getlist('photos_before'))
 
             for photo in before_files:
                 try:
                     optimized = resize_and_compress(
                         photo,
-                        max_width=1600,
-                        max_height=1600,
-                        quality=80,
-                        target_format=None,
-                        keep_exif=False,
+                        max_width=1600, max_height=1600,
+                        quality=80, target_format=None, keep_exif=False
                     )
                 except Exception:
                     optimized = photo  # ถ้าบีบอัดพัง ยังเซฟไฟล์เดิมได้
 
                 BeforeAfterPhoto.objects.create(
                     ticket=ticket,
-                    photo_type="BEFORE",
+                    photo_type='BEFORE',
                     image=optimized,
                     uploaded_by=request.user,
                 )
@@ -69,19 +63,17 @@ def create_ticket(request):
             # ประวัติสถานะเริ่มต้น
             TicketStatusHistory.objects.create(
                 ticket=ticket,
-                status="PENDING",
+                status='PENDING',
                 changed_by=request.user,
-                note="สร้าง Ticket ใหม่",
+                note='สร้าง Ticket ใหม่',
             )
             result = auto_dispatch_ticket(ticket)
-            if ticket.assigned_to:
-                notify_ticket_assigned(ticket)
 
-            return redirect("tickets:ticket_detail", ticket_id=ticket.id)
+            return redirect('tickets:ticket_detail', ticket_id=ticket.id)
     else:
-        form = TicketForm()
+            form = TicketForm()
 
-    return render(request, "user/create_ticket.html", {"form": form})
+    return render(request, 'user/create_ticket.html', {'form': form})
 
 
 # -------------------------------------------------------------------
@@ -90,21 +82,19 @@ def create_ticket(request):
 @login_required
 def my_tickets(request):
     tickets = Ticket.objects.filter(created_by=request.user).select_related(
-        "category", "assigned_to"
+        'category', 'assigned_to'
     )
 
-    search_query = request.GET.get("search", "").strip()
-    status_filter = request.GET.get("status", "")
-    category_filter = request.GET.get("category", "")
-    urgency_filter = request.GET.get("urgency", "")
-    date_from = request.GET.get("date_from", "")
-    date_to = request.GET.get("date_to", "")
-    sort_by = request.GET.get("sort", "-created_at")
+    search_query   = request.GET.get('search', '').strip()
+    status_filter  = request.GET.get('status', '')
+    category_filter = request.GET.get('category', '')
+    urgency_filter = request.GET.get('urgency', '')
+    date_from      = request.GET.get('date_from', '')
+    date_to        = request.GET.get('date_to', '')
+    sort_by        = request.GET.get('sort', '-created_at')
 
     if search_query:
-        tickets = tickets.filter(
-            Q(title__icontains=search_query) | Q(description__icontains=search_query)
-        )
+        tickets = tickets.filter(Q(title__icontains=search_query) | Q(description__icontains=search_query))
     if status_filter:
         tickets = tickets.filter(status=status_filter)
     if category_filter:
@@ -114,47 +104,42 @@ def my_tickets(request):
 
     if date_from:
         try:
-            date_from_obj = datetime.strptime(date_from, "%Y-%m-%d")
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
             tickets = tickets.filter(created_at__gte=date_from_obj)
         except ValueError:
             pass
 
     if date_to:
         try:
-            date_to_obj = datetime.strptime(date_to, "%Y-%m-%d")
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
             tickets = tickets.filter(created_at__lt=date_to_obj + timedelta(days=1))
         except ValueError:
             pass
 
-    if sort_by in ["-created_at", "created_at", "-urgency_level", "urgency_level"]:
+    if sort_by in ['-created_at', 'created_at', '-urgency_level', 'urgency_level']:
         tickets = tickets.order_by(sort_by)
     else:
-        tickets = tickets.order_by("-created_at")
+        tickets = tickets.order_by('-created_at')
 
     categories = Category.objects.filter(is_active=True)
     all_tickets = Ticket.objects.filter(created_by=request.user)
 
     context = {
-        "tickets": tickets,
-        "categories": categories,
-        "pending_count": all_tickets.filter(status="PENDING").count(),
-        "in_progress_count": all_tickets.filter(
-            status__in=["IN_PROGRESS", "INSPECTING", "WORKING"]
-        ).count(),
-        "completed_count": all_tickets.filter(
-            status__in=["COMPLETED", "CLOSED"]
-        ).count(),
-        "search_query": search_query,
-        "status_filter": status_filter,
-        "category_filter": category_filter,
-        "urgency_filter": urgency_filter,
-        "date_from": date_from,
-        "date_to": date_to,
-        "sort_by": sort_by,
-        "filtered_count": tickets.count(),
+        'tickets': tickets,
+        'categories': categories,
+        'pending_count': all_tickets.filter(status='PENDING').count(),
+        'in_progress_count': all_tickets.filter(status__in=['IN_PROGRESS', 'INSPECTING', 'WORKING']).count(),
+        'completed_count': all_tickets.filter(status__in=['COMPLETED', 'CLOSED']).count(),
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'category_filter': category_filter,
+        'urgency_filter': urgency_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'sort_by': sort_by,
+        'filtered_count': tickets.count(),
     }
-    return render(request, "user/my_tickets.html", context)
-
+    return render(request, 'user/my_tickets.html', context)
 
 # -------------------------------------------------------------------
 # รายละเอียด Ticket + อัปเดตโดยช่าง ได้แล้ว
@@ -162,46 +147,39 @@ def my_tickets(request):
 @login_required
 def ticket_detail(request, ticket_id):
     ticket = get_object_or_404(
-        Ticket.objects.select_related("category", "created_by", "assigned_to"),
-        id=ticket_id,
+        Ticket.objects.select_related('category', 'created_by', 'assigned_to'),
+        id=ticket_id
     )
 
     # ฝั่งช่างอัปโหลด AFTER / อัปเดตสถานะ / ส่งงาน
-    if (
-        request.method == "POST"
-        and getattr(request.user, "role", None) == "technician"
-        and ticket.assigned_to == request.user
-    ):
-        action = request.POST.get("action")
+    if request.method == 'POST' and getattr(request.user, 'role', None) == 'technician' and ticket.assigned_to == request.user:
+        action = request.POST.get('action')
 
         # อัปโหลดรูป AFTER
-        if request.FILES.get("after_photo"):
-            after_photo_file = request.FILES["after_photo"]
+        if request.FILES.get('after_photo'):
+            after_photo_file = request.FILES['after_photo']
             try:
-                optimized = resize_and_compress(
-                    after_photo_file, max_width=1600, max_height=1600, quality=80
-                )
+                optimized = resize_and_compress(after_photo_file, max_width=1600, max_height=1600, quality=80)
             except Exception:
                 optimized = after_photo_file
 
             # ให้มี AFTER ล่าสุดเพียงรูปเดียว (พฤติกรรมเดิม)
-            old_after = ticket.before_after_photos.filter(photo_type="AFTER").first()
+            old_after = ticket.before_after_photos.filter(photo_type='AFTER').first()
             if old_after:
                 old_after.delete()
 
             BeforeAfterPhoto.objects.create(
                 ticket=ticket,
-                photo_type="AFTER",
+                photo_type='AFTER',
                 image=optimized,
                 uploaded_by=request.user,
             )
 
-        if action == "update_status":
-            new_status = request.POST.get("new_status")
-            comment = request.POST.get("comment", "").strip()
+        if action == 'update_status':
+            new_status = request.POST.get('new_status')
+            comment = request.POST.get('comment', '').strip()
 
             if new_status and new_status != ticket.status:
-                old_status = ticket.status
                 ticket.status = new_status
                 ticket.save()
 
@@ -209,43 +187,36 @@ def ticket_detail(request, ticket_id):
                     ticket=ticket,
                     status=new_status,
                     changed_by=request.user,
-                    note=(
-                        comment
-                        if comment
-                        else f"เปลี่ยนสถานะเป็น {ticket.get_status_display()}"
-                    ),
+                    note=comment if comment else f'เปลี่ยนสถานะเป็น {ticket.get_status_display()}',
                 )
-                notify_status_changed(ticket, old_status, new_status)
 
-        elif action == "submit_work":
+        elif action == 'submit_work':
             # ต้องมี AFTER อย่างน้อย 1 รูป
-            after_photo_exists = ticket.before_after_photos.filter(
-                photo_type="AFTER"
-            ).exists()
+            after_photo_exists = ticket.before_after_photos.filter(photo_type='AFTER').exists()
 
-            ticket.status = "COMPLETED"
+            ticket.status = 'COMPLETED'
             ticket.completed_at = timezone.now()
             ticket.save()
 
-            comment = request.POST.get("comment", "").strip()
+            comment = request.POST.get('comment', '').strip()
             TicketStatusHistory.objects.create(
                 ticket=ticket,
-                status="COMPLETED",
+                status='COMPLETED',
                 changed_by=request.user,
-                note=comment if comment else "ส่งงานเสร็จสิ้น",
+                note=comment if comment else 'ส่งงานเสร็จสิ้น',
             )
-            notify_ticket_completed(ticket)
+                
 
-        return redirect("tickets:ticket_detail", ticket_id=ticket.id)
+        return redirect('tickets:ticket_detail', ticket_id=ticket.id)
 
     # แสดงผล
-    history = ticket.status_histories.order_by("created_at")  # related_name ปัจจุบัน
+    history = ticket.status_histories.order_by('created_at')  # related_name ปัจจุบัน
     attachments = ticket.attachments.all()
 
     before_after_photos = ticket.before_after_photos.all()
-    before_photo = before_after_photos.filter(photo_type="BEFORE").first()
-    after_photo = before_after_photos.filter(photo_type="AFTER").first()
-
+    before_photo = before_after_photos.filter(photo_type='BEFORE').first()
+    after_photo = before_after_photos.filter(photo_type='AFTER').first()
+    
     maps_url = None
     maps_directions_url = None
     coord_text = None
@@ -257,22 +228,19 @@ def ticket_detail(request, ticket_id):
         # เปิดหมุดแบบค้นหาจากพิกัด (รองรับ mobile/desktop)
         maps_url = f"https://www.google.com/maps/search/?api=1&query={lat},{lon}"
         # ปุ่มนำทาง (เผื่ออยากใช้)
-        maps_directions_url = (
-            f"https://www.google.com/maps/dir/?api=1&destination={lat},{lon}"
-        )
+        maps_directions_url = f"https://www.google.com/maps/dir/?api=1&destination={lat},{lon}"
 
     context = {
-        "ticket": ticket,
-        "history": history,
-        "attachments": attachments,
-        "before_photo": before_photo,
-        "maps_url": maps_url,  # เพื่ม google map
-        "maps_directions_url": maps_directions_url,
-        "coord_text": coord_text,
-        "after_photo": after_photo,
+        'ticket': ticket,
+        'history': history,
+        'attachments': attachments,
+        'before_photo': before_photo,
+        'maps_url': maps_url,                     # เพื่ม google map
+        'maps_directions_url': maps_directions_url,
+        'coord_text': coord_text,
+        'after_photo': after_photo,
     }
-    return render(request, "user/ticket_detail.html", context)
-
+    return render(request, 'user/ticket_detail.html', context)
 
 # -------------------------------------------------------------------
 # แก้ไข Ticket (เฉพาะ PENDING) ได้แล้ว
@@ -281,10 +249,10 @@ def ticket_detail(request, ticket_id):
 def edit_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id, created_by=request.user)
 
-    if ticket.status != "PENDING":
-        return redirect("tickets:ticket_detail", ticket_id=ticket_id)
+    if ticket.status != 'PENDING':
+        return redirect('tickets:ticket_detail', ticket_id=ticket_id)
 
-    if request.method == "POST":
+    if request.method == 'POST':
         form = TicketForm(request.POST, request.FILES, instance=ticket)
         if form.is_valid():
             updated_ticket = form.save()
@@ -292,15 +260,15 @@ def edit_ticket(request, ticket_id):
                 ticket=updated_ticket,
                 status=updated_ticket.status,
                 changed_by=request.user,
-                note=f"แก้ไขข้อมูล Ticket โดย {request.user.get_display_name()}",
+                note=f'แก้ไขข้อมูล Ticket โดย {request.user.get_display_name()}',
             )
-            return redirect("tickets:ticket_detail", ticket_id=ticket_id)
+            return redirect('tickets:ticket_detail', ticket_id=ticket_id)
     else:
         form = TicketForm(instance=ticket)
 
     categories = Category.objects.filter(is_active=True)
-    context = {"form": form, "ticket": ticket, "categories": categories}
-    return render(request, "user/edit_ticket.html", context)
+    context = {'form': form, 'ticket': ticket, 'categories': categories}
+    return render(request, 'user/edit_ticket.html', context)
 
 
 # -------------------------------------------------------------------
@@ -310,28 +278,26 @@ def edit_ticket(request, ticket_id):
 def cancel_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id, created_by=request.user)
 
-    if ticket.status not in ["PENDING", "IN_PROGRESS", "INSPECTING", "WORKING"]:
-        return redirect("tickets:ticket_detail", ticket_id=ticket_id)
+    if ticket.status not in ['PENDING', 'IN_PROGRESS', 'INSPECTING', 'WORKING']:
+        return redirect('tickets:ticket_detail', ticket_id=ticket_id)
 
-    if request.method == "POST":
+    if request.method == 'POST':
         assigned_tech = ticket.assigned_to
-        ticket.status = "REJECTED"
-        ticket.reject_reason = (
-            f'ยกเลิกโดยผู้แจ้ง: {request.POST.get("reason", "ไม่ระบุเหตุผล")}'
-        )
+        ticket.status = 'REJECTED'
+        ticket.reject_reason = f'ยกเลิกโดยผู้แจ้ง: {request.POST.get("reason", "ไม่ระบุเหตุผล")}'
         ticket.assigned_to = None
         ticket.save()
 
         TicketStatusHistory.objects.create(
             ticket=ticket,
-            status="REJECTED",
+            status='REJECTED',
             changed_by=request.user,
             note=ticket.reject_reason,
         )
 
-        return redirect("tickets:my_tickets")
+        return redirect('tickets:my_tickets')
 
-    return render(request, "user/cancel_ticket.html", {"ticket": ticket})
+    return render(request, 'user/cancel_ticket.html', {'ticket': ticket})
 
 
 def _can_dispatch(user):
@@ -341,10 +307,9 @@ def _can_dispatch(user):
     role = (getattr(user, "role", "") or "").lower()
     return role in ("dispatcher", "technician")
 
-
 @login_required
 @user_passes_test(_can_dispatch)
 def dispatch_ticket(request, ticket_id):
     ticket = get_object_or_404(Ticket, pk=ticket_id)
     result = auto_dispatch_ticket(ticket)
-    return redirect("tickets:ticket_detail", ticket_id=ticket.id)
+    return redirect('tickets:ticket_detail', ticket_id=ticket.id)

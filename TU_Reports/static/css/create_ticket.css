@@ -27,9 +27,9 @@
 
 .ticket-form{
   padding:22px 24px;
-  display:grid; grid-template-columns:1fr ; gap:16px 18px;
+  display:grid; grid-template-columns:1fr 1fr; gap:16px 18px;
 }
-/* .ticket-form .col-span-2{ grid-column:1 / -1; } */
+.ticket-form .col-span-2{ grid-column:1 / -1; }
 
 .label{ display:block; font-weight:800; color:#374151; margin-bottom:.45rem; }
 .label .req{ color:var(--red); }
@@ -59,7 +59,7 @@
 .label-row .mb-0{ margin-bottom:0; }
 .btn-row{ display:flex; gap:8px; }
 
-.map-card{ padding:10px; border-radius:18px; background:#fff; border:1px solid #f1f5f9; box-shadow:0 12px 28px rgba(0,0,0,.08); margin-top:8px; }
+.map-card{ padding:10px; border-radius:18px; background:#fff; border:1px solid #f1f5f9; box-shadow:0 12px 28px rgba(0,0,0,.08); }
 .map-box{ width:100%; height:22rem; border-radius:14px; overflow:hidden; }
 .map-box .leaflet-control{ margin:12px; }
 .map-box .leaflet-control-zoom a{ border-radius:10px !important; box-shadow:0 6px 14px rgba(0,0,0,.08); }
@@ -98,9 +98,4 @@
 @media (max-width: 820px){
   .ticket-form{ grid-template-columns:1fr; }
   .label-row{ flex-direction:column; align-items:flex-start; gap:6px; }
-}
-
-.ticket-form .label-row{
-  margin-top: 14px;   
-  margin-bottom: 12px;
 }

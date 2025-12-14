@@ -19,7 +19,7 @@ def login_view(request):
     """Login page - รองรับทั้ง TU API และ Local"""
     if request.user.is_authenticated:
         if request.user.role == 'admin':
-                    return redirect('analytics:dashboard')
+            return redirect('dashboard:summary')
         elif request.user.role == 'technician':
             return redirect('technician:job_list')
         else:
@@ -79,7 +79,7 @@ def login_view(request):
                 messages.success(request, f'ยินดีต้อนรับ {user.get_display_name()}')
 
                 if user.role == 'admin':
-                            return redirect('analytics:dashboard')
+                    return redirect('dashboard:summary')
                 elif user.role == 'technician':
                     return redirect('technician:job_list')
                 else:
