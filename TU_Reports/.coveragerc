@@ -1,0 +1,15 @@
+[run]
+# ให้วัดผลไฟล์ในโปรเจกต์ปัจจุบัน
+source = .
+omit =
+    */migrations/*
+    */__init__.py
+    manage.py
+    */asgi.py
+    */wsgi.py
+    */settings.py
+    */about/*
+    */management/commands/*
+
+[report]
+show_missing = True
