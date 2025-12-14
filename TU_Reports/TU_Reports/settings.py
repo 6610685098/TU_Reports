@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from decimal import Decimal
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # settings.py
 TECH_DEFAULT_AVAILABLE = True
@@ -204,5 +208,5 @@ LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/login/"
 
 TU_API_ENABLED = True
-TU_API_BASE_URL = "https://restapi.tu.ac.th"
-TU_APPLICATION_KEY = "TUefa2f6a38c1ec79dcfb23bb2074747dc91381e33471794e37e3dcf69712bcc024fed72ce50df9f0ff5e8cb1e0e136f8f"
+TU_API_BASE_URL = os.getenv("TU_API_BASE_URL")
+TU_APPLICATION_KEY = os.getenv("TU_APPLICATION_KEY")
