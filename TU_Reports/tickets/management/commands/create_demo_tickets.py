@@ -36,7 +36,7 @@ class Command(BaseCommand):
             u.save()
             requesters.append(u)
             self.stdout.write(
-                self.style.SUCCESS(f"  [+] Ensured requester user: {uname} / pass1234")
+                self.style.SUCCESS(f"  [+] Ensured requester user: {uname} / student123")
             )
 
         # 3. ตรวจสอบจำนวน Ticket
